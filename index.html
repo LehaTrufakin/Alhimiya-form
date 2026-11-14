@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>3D-витрина мастерской</title>
+<meta name="description" content="Изделия из полимерной глины и смолы ручной работы — посмотрите каждое в 3D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f7f1e8; --paper:#fffaf3; --ink:#2b2622; --muted:#7b6f64;
+    --berry:#b23a48; --berry-d:#8f2a37; --pine:#2f5d50; --line:#e8dccb;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif}
+  body{min-height:100vh;
+    background-image:radial-gradient(circle at 12% 8%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 30%,#fff 0 1.5px,transparent 2.5px),radial-gradient(circle at 40% 70%,#fff 0 2px,transparent 3px);
+    background-size:180px 180px,230px 230px,200px 200px}
+  a{color:inherit}
+  button{font:inherit;cursor:pointer}
+  [hidden]{display:none!important}
+
+  /* ---------- Каталог ---------- */
+  .top{padding:28px 18px 10px;text-align:center}
+  .top h1{font-family:Comfortaa,sans-serif;font-size:clamp(22px,5.5vw,34px);margin:0 0 6px;letter-spacing:.2px}
+  .top p{margin:0;color:var(--muted);font-size:15px}
+  .badge3d{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 12px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--pine)}
+  .cats{display:flex;gap:8px;overflow-x:auto;padding:14px 16px 6px;scrollbar-width:none;justify-content:flex-start}
+  @media(min-width:700px){.cats{justify-content:center}}
+  .cats::-webkit-scrollbar{display:none}
+  .chip{flex:none;border:1px solid var(--line);background:var(--paper);padding:8px 14px;border-radius:99px;font-weight:700;font-size:14px;color:var(--muted)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px 14px 30px;max-width:1100px;margin:0 auto}
+  @media(min-width:700px){.grid{grid-template-columns:repeat(3,1fr);gap:18px}}
+  @media(min-width:1000px){.grid{grid-template-columns:repeat(4,1fr)}}
+  .card{display:block;text-decoration:none;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:transform .15s,box-shadow .15s}
+  .card:active{transform:scale(.98)}
+  @media(hover:hover){.card:hover{transform:translateY(-3px);box-shadow:0 10px 24px -14px rgba(60,40,20,.35)}}
+  .thumb{position:relative;aspect-ratio:1;background:radial-gradient(circle at 50% 40%,#fff,#f1e7d8)}
+  .thumb img{width:100%;height:100%;object-fit:contain;display:block}
+  .thumb .t3d{position:absolute;right:8px;top:8px;background:rgba(255,255,255,.92);border-radius:99px;padding:3px 8px;font-size:11px;font-weight:800;color:var(--pine)}
+  .card .info{padding:10px 12px 12px}
+  .card .name{font-weight:800;font-size:15px;line-height:1.25;margin:0 0 4px}
+  .card .meta{font-size:12px;color:var(--muted);margin:0 0 6px}
+  .card .price{font-weight:800;color:var(--berry)}
+  footer{text-align:center;color:var(--muted);font-size:13px;padding:10px 16px 34px}
+  footer a{color:var(--pine);font-weight:700}
+
+  /* ---------- 3D-просмотр ---------- */
+  .viewer{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column}
+  .stage-wrap{position:relative;flex:1 1 58%;min-height:300px;
+    background:radial-gradient(ellipse at 50% 45%,#fffdf9 0,#f3e9db 60%,#eadcc8 100%)}
+  #stage{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+  .icon{position:absolute;top:calc(12px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.08);font-size:20px;display:grid;place-items:center;color:var(--ink);text-decoration:none}
+  .back{left:12px}
+  .hint{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);background:rgba(43,38,34,.78);color:#fff;font-size:13px;padding:7px 14px;border-radius:99px;white-space:nowrap;transition:opacity .5s;pointer-events:none}
+  .hint.off{opacity:0}
+  .loader{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-weight:700;pointer-events:none}
+  .tools{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:8px}
+  .tool{border:none;background:rgba(255,255,255,.94);padding:9px 14px;border-radius:99px;font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.08);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .tool.on{background:var(--pine);color:#fff}
+  .sheet{flex:0 0 auto;max-height:42%;overflow-y:auto;background:var(--paper);border-top:1px solid var(--line);border-radius:22px 22px 0 0;margin-top:-18px;position:relative;padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
+  .sheet .cat{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--pine)}
+  .sheet h2{font-family:Comfortaa,sans-serif;margin:6px 0 4px;font-size:22px}
+  .sheet .price{font-size:20px;font-weight:800;color:var(--berry);margin-bottom:10px}
+  .specs{list-style:none;padding:0;margin:0 0 10px;display:flex;flex-wrap:wrap;gap:6px}
+  .specs li{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:13px}
+  .sheet p{margin:0 0 14px;line-height:1.5;color:#4a4039}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{flex:1 1 160px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px 16px;font-weight:800;font-size:15px;text-align:center;text-decoration:none;color:var(--ink)}
+  .btn.primary{background:var(--berry);border-color:var(--berry);color:#fff}
+  .btn.primary:active{background:var(--berry-d)}
+  .navrow{display:flex;justify-content:space-between;margin-top:12px}
+  .navrow button{border:none;background:none;color:var(--muted);font-weight:700;padding:6px 2px}
+  @media(min-width:900px){
+    .viewer{flex-direction:row}
+    .stage-wrap{flex:1 1 auto}
+    .sheet{flex:0 0 400px;max-height:none;border-radius:0;margin:0;border-top:none;border-left:1px solid var(--line);padding:40px 30px;display:flex;flex-direction:column;justify-content:center}
+    .sheet h2{font-size:28px}
+  }
+
+  /* ---------- Этикетки с QR ---------- */
+  .labels{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+  .labels h2{font-family:Comfortaa,sans-serif;margin:0 0 6px}
+  .labels .lead{color:var(--muted);margin:0 0 14px}
+  .lrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+  .lrow input{flex:1 1 280px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);font:inherit;background:#fff}
+  .lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+  .label{background:#fff;border:1.5px dashed #cdbca6;border-radius:14px;padding:14px;text-align:center;break-inside:avoid}
+  .label .qr svg{width:150px;height:150px;display:block;margin:0 auto 8px}
+  .label .ln{font-weight:800;margin:0}
+  .label .lp{color:var(--berry);font-weight:800;margin:2px 0 6px}
+  .label .lh{font-size:12px;color:var(--muted);margin:0}
+  @media print{
+    body{background:#fff}
+    .noprint{display:none!important}
+    .labels{padding:0}
+    .lgrid{grid-template-columns:repeat(3,1fr);gap:6mm}
+  }
+
+  #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:50;transition:.25s;max-width:90vw;text-align:center;pointer-events:none}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- ===== Каталог ===== -->
+<div id="catalog">
+  <header class="top">
+    <h1 id="shopName"></h1>
+    <p id="shopTag"></p>
+    <div class="badge3d">◈ Каждое изделие можно покрутить в 3D</div>
+  </header>
+  <nav class="cats" id="cats"></nav>
+  <main class="grid" id="grid"></main>
+  <footer class="noprint">
+    <a id="vkLink" target="_blank" rel="noopener">Мы во ВКонтакте</a> ·
+    <a href="#labels">QR-этикетки для печати</a>
+  </footer>
+</div>
+
+<!-- ===== 3D-просмотр товара ===== -->
+<section class="viewer" id="viewer" hidden>
+  <div class="stage-wrap" id="stageWrap">
+    <canvas id="stage"></canvas>
+    <div class="loader" id="loader">Загружаем 3D-модель…</div>
+    <button class="icon back" id="btnBack" aria-label="Назад к каталогу">←</button>
+    <div class="hint" id="hint">Крутите пальцем · щипок — приблизить</div>
+    <div class="tools">
+      <button class="tool on" id="btnSpin">⟳ Вращение</button>
+      <button class="tool" id="btnReset">⌖ Сброс</button>
+      <a class="tool" id="btnAR" hidden>▣ В комнате (AR)</a>
+    </div>
+  </div>
+  <div class="sheet">
+    <div class="cat" id="vCat"></div>
+    <h2 id="vName"></h2>
+    <div class="price" id="vPrice"></div>
+    <ul class="specs" id="vSpecs"></ul>
+    <p id="vDesc"></p>
+    <div class="actions">
+      <a class="btn primary" id="btnOrder" target="_blank" rel="noopener">Заказать во ВКонтакте</a>
+      <button class="btn" id="btnShare">Поделиться</button>
+    </div>
+    <div class="navrow">
+      <button id="btnPrev">‹ Предыдущий</button>
+      <button id="btnNext">Следующий ›</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== QR-этикетки ===== -->
+<section class="labels" id="labels" hidden>
+  <div class="noprint">
+    <h2>QR-этикетки для витрины и ярмарки</h2>
+    <p class="lead">Покупатель наводит камеру телефона на QR — и сразу открывается 3D-модель этого товара. Укажите адрес, где лежит витрина, и распечатайте.</p>
+    <div class="lrow">
+      <input id="baseUrl" type="url" placeholder="https://ваш-сайт/vitrina/">
+      <button class="btn" id="btnPrint" style="flex:0 0 auto">Печать</button>
+      <a class="btn" href="#" style="flex:0 0 auto">← Каталог</a>
+    </div>
+  </div>
+  <div class="lgrid" id="lgrid"></div>
+</section>
+
+<div id="toast"></div>
+
+<!-- Ваши настройки и товары — в файле products.js -->
+<script src="products.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+
+/* =====================================================================
+   1. НАСТРОЙКИ МАГАЗИНА — поменяйте на свои
+   ===================================================================== */
+const SHOP = window.SHOP_CONFIG?.shop || {
+  name: 'Мастерская зимних чудес',
+  tagline: 'Полимерная глина и эпоксидная смола · ручная работа',
+  vk: 'https://vk.com/your_group',          // страница сообщества
+  vkMessages: 'https://vk.me/your_group',   // «Написать сообществу»
+};
+
+/* =====================================================================
+   2. ТОВАРЫ
+   id      — латиница/цифры/дефис, идёт в ссылку и QR (…/#ball-snow)
+   model   — путь к своей модели: .glb (с цветами) или .stl (без цвета).
+             Если его нет или он не загрузился — показывается простая
+             модель из shape.
+   color   — цвет для .stl (STL цвета не хранит), например '#b23a48'
+   material— для .stl: 'clay' (глина, по умолчанию) | 'resin' (прозрачная
+             смола) | 'glossy' (глянец, покрытый лаком)
+   zUp     — для .stl: true, если модель «лежит на боку» (из программ для
+             3D-печати ось Z смотрит вверх). По умолчанию true.
+   usdz    — (необязательно) .usdz для AR на iPhone
+   shape   — простая модель: ornament | star | snowman | mug | coaster | heart
+   ===================================================================== */
+const PRODUCTS = window.SHOP_CONFIG?.products || [
+  /* ▼ ПРИМЕР ВАШЕЙ МОДЕЛИ: положите файл model.stl рядом с index.html */
+  { id:'my-item', name:'Моё изделие', category:'Новинки',
+    price:'— ₽', specs:['Полимерная глина','ручная работа'],
+    desc:'Опишите изделие: размер, цвет, из чего сделано.',
+    model:'model.stl', color:'#c0563f', material:'clay', zUp:true,
+    shape:{ type:'ornament', color:'#c0563f', pattern:'dots', ink:'#fff' } },
+
+  { id:'ball-snow', name:'Шар «Снежинки»', category:'Ёлочные игрушки',
+    price:'650 ₽', specs:['Полимерная глина','Ø 7 см','Лак'],
+    desc:'Лёгкий шар с объёмными снежинками, каждая вылеплена вручную. Покрыт защитным лаком, не бьётся.',
+    shape:{ type:'ornament', color:'#b23a48', pattern:'snowflakes', ink:'#fff7ee' } },
+
+  { id:'ball-forest', name:'Шар «Зимний лес»', category:'Ёлочные игрушки',
+    price:'690 ₽', specs:['Полимерная глина','Ø 7 см'],
+    desc:'Тёмно-зелёный шар с ёлочками и снегом. Можно добавить имя или год.',
+    shape:{ type:'ornament', color:'#2f5d50', pattern:'trees', ink:'#fffaf2' } },
+
+  { id:'star-gold', name:'Звезда на ёлку', category:'Ёлочные игрушки',
+    price:'450 ₽', specs:['Полимерная глина','9 см','Перламутр'],
+    desc:'Пухлая звезда с перламутровым покрытием и белыми точками.',
+    shape:{ type:'star', color:'#e3b04b' } },
+
+  { id:'snowman', name:'Снеговик', category:'Фигурки',
+    price:'550 ₽', specs:['Полимерная глина','8 см'],
+    desc:'Снеговик в красном шарфе и шляпе. Устойчиво стоит, есть вариант с петелькой.',
+    shape:{ type:'snowman' } },
+
+  { id:'mug-forest', name:'Кружка «Ёлочки»', category:'Сувенирные кружки',
+    price:'1 400 ₽', specs:['Керамика','Декор из глины','350 мл'],
+    desc:'Кружка с объёмным декором из полимерной глины. Декор закреплён и покрыт лаком, мыть вручную.',
+    shape:{ type:'mug', color:'#f3ece0', pattern:'trees', ink:'#2f5d50' } },
+
+  { id:'mug-berry', name:'Кружка «Снегопад»', category:'Сувенирные кружки',
+    price:'1 350 ₽', specs:['Керамика','Декор из глины','300 мл'],
+    desc:'Ягодно-красная кружка со снежинками. Отличный подарок к Новому году.',
+    shape:{ type:'mug', color:'#a8323f', pattern:'snowflakes', ink:'#fff7ee' } },
+
+  { id:'coaster-flowers', name:'Подставка с цветами', category:'Изделия из смолы',
+    price:'900 ₽', specs:['Эпоксидная смола','Ø 10 см','Сухоцветы'],
+    desc:'Прозрачная подставка под кружку с настоящими сухоцветами и золотой поталью.',
+    shape:{ type:'coaster', color:'#bfe3e0' } },
+
+  { id:'heart-resin', name:'Кулон «Сердце»', category:'Изделия из смолы',
+    price:'750 ₽', specs:['Эпоксидная смола','4 см','Поталь'],
+    desc:'Подвеска-сердце из смолы с цветком и хлопьями золота внутри. Можно повесить на ёлку.',
+    shape:{ type:'heart', color:'#f2a3b5' } },
+];
+
+/* ===================================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const byId = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2600); }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function hashSeed(s){ let h=2166136261; for(const c of s) h=Math.imul(h^c.charCodeAt(0),16777619); return h>>>0; }
+
+/* ---------------- Текстуры ---------------- */
+let noiseTex = null;
+function clayNoise(){              // лёгкая неровность «ручной лепки»
+  if (noiseTex) return noiseTex;
+  const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d');
+  const img=g.createImageData(256,256), r=mulberry32(7);
+  for(let i=0;i<img.data.length;i+=4){ const v=118+r()*20; img.data[i]=img.data[i+1]=img.data[i+2]=v; img.data[i+3]=255; }
+  g.putImageData(img,0,0); g.filter='blur(1.2px)'; g.drawImage(c,0,0);
+  noiseTex=new THREE.CanvasTexture(c); noiseTex.wrapS=noiseTex.wrapT=THREE.RepeatWrapping; noiseTex.repeat.set(3,3);
+  return noiseTex;
+}
+function drawSnowflake(g,x,y,r){
+  g.save(); g.translate(x,y); g.lineWidth=Math.max(3,r*0.13);
+  for(let i=0;i<6;i++){ g.rotate(Math.PI/3); g.beginPath(); g.moveTo(0,0); g.lineTo(0,-r);
+    g.moveTo(0,-r*0.55); g.lineTo(-r*0.25,-r*0.78); g.moveTo(0,-r*0.55); g.lineTo(r*0.25,-r*0.78); g.stroke(); }
+  g.beginPath(); g.arc(0,0,r*0.14,0,Math.PI*2); g.fill(); g.restore();
+}
+function drawTree(g,x,base,h){
+  const w=h*0.62;
+  for(let i=0;i<3;i++){ const top=base-h+i*h*0.24, bw=w*(0.55+i*0.22);
+    g.beginPath(); g.moveTo(x,top); g.lineTo(x-bw/2,top+h*0.42); g.lineTo(x+bw/2,top+h*0.42); g.closePath(); g.fill(); }
+  g.fillRect(x-h*0.05,base-h*0.12,h*0.1,h*0.14);
+}
+function patternTexture(base, ink, kind, seed){
+  const W=1024,H=512, c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  g.fillStyle=base; g.fillRect(0,0,W,H); g.strokeStyle=ink; g.fillStyle=ink; g.lineCap='round';
+  const r=mulberry32(seed);
+  const wrap=(x,m,fn)=>{ fn(x); if(x<m) fn(x+W); if(x>W-m) fn(x-W); };
+  if(kind==='snowflakes'){
+    for(let i=0;i<20;i++){ const x=(i+r()*0.6)*W/20, y=H*0.24+r()*H*0.52, rr=20+r()*24; wrap(x,60,xx=>drawSnowflake(g,xx,y,rr)); }
+    for(let i=0;i<60;i++){ const x=r()*W,y=H*0.18+r()*H*0.64; g.beginPath(); g.arc(x,y,2+r()*3,0,7); g.fill(); }
+  } else if(kind==='trees'){
+    for(let i=0;i<70;i++){ const x=r()*W,y=H*0.2+r()*H*0.35; g.beginPath(); g.arc(x,y,2.5+r()*3.5,0,7); g.fill(); }
+    for(let i=0;i<13;i++){ const x=(i+0.5)*W/13+(r()-0.5)*20, h=110+r()*80; wrap(x,80,xx=>drawTree(g,xx,H*0.8,h)); }
+    g.fillRect(0,H*0.79,W,10);
+  } else if(kind==='dots'){
+    for(let y=60;y<H;y+=70) for(let x=(y/70%2)*45;x<W;x+=90){ g.beginPath(); g.arc(x,y,14,0,7); g.fill(); }
+  }
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.wrapS=THREE.RepeatWrapping; t.anisotropy=4;
+  return t;
+}
+
+/* ---------------- Материалы ---------------- */
+const clay = (color, extra={}) => new THREE.MeshPhysicalMaterial({
+  color, roughness:0.62, clearcoat:0.25, clearcoatRoughness:0.5,
+  bumpMap:clayNoise(), bumpScale:0.3, ...extra });
+const metal = color => new THREE.MeshStandardMaterial({ color, metalness:1, roughness:0.28 });
+const resin = color => new THREE.MeshPhysicalMaterial({
+  color:0xffffff, transmission:1, thickness:0.5, roughness:0.06, ior:1.5,
+  clearcoat:1, clearcoatRoughness:0.04, attenuationColor:new THREE.Color(color), attenuationDistance:0.9 });
+
+function hangLoop(y){
+  const g=new THREE.Group();
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.23,0.22,32), metal(0xd8b25a)); cap.position.y=y;
+  const loop=new THREE.Mesh(new THREE.TorusGeometry(0.13,0.028,12,40), metal(0xd8b25a)); loop.position.y=y+0.24;
+  g.add(cap,loop); return g;
+}
+function flower(petal, scale=1){
+  const g=new THREE.Group(), m=clay(petal,{bumpScale:0.2});
+  for(let i=0;i<5;i++){ const p=new THREE.Mesh(new THREE.SphereGeometry(0.1,12,8), m);
+    p.scale.set(1,0.22,0.55); const a=i/5*Math.PI*2; p.position.set(Math.cos(a)*0.09,0,Math.sin(a)*0.09); p.rotation.y=-a; g.add(p); }
+  const c=new THREE.Mesh(new THREE.SphereGeometry(0.045,12,8), clay('#f2c230')); c.scale.y=0.5; g.add(c);
+  g.scale.setScalar(scale); return g;
+}
+function goldFlakes(n, rnd, place){
+  const g=new THREE.Group(), m=new THREE.MeshStandardMaterial({color:0xe6bf5c,metalness:1,roughness:0.3,side:THREE.DoubleSide});
+  for(let i=0;i<n;i++){ const f=new THREE.Mesh(new THREE.PlaneGeometry(0.05+rnd()*0.06,0.04+rnd()*0.05), m);
+    place(f.position, rnd); f.rotation.set(rnd()*6,rnd()*6,rnd()*6); g.add(f); }
+  return g;
+}
+
+/* ---------------- Простые 3D-модели товаров ---------------- */
+const BUILDERS = {
+  ornament(s, seed){
+    const g=new THREE.Group();
+    const tex=patternTexture(s.color, s.ink||'#fff', s.pattern||'dots', seed);
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(1,72,48), clay(0xffffff,{map:tex, bumpScale:0.2})));
+    g.add(hangLoop(1.02));
+    return g;
+  },
+  star(s){
+    const g=new THREE.Group(), sh=new THREE.Shape();
+    for(let i=0;i<10;i++){ const a=Math.PI/2+i*Math.PI/5, r=i%2?0.46:1; i?sh.lineTo(Math.cos(a)*r,Math.sin(a)*r):sh.moveTo(Math.cos(a)*r,Math.sin(a)*r); }
+    sh.closePath();
+    const geo=new THREE.ExtrudeGeometry(sh,{depth:0.2,bevelEnabled:true,bevelThickness:0.14,bevelSize:0.1,bevelSegments:6,curveSegments:4});
+    geo.center();
+    g.add(new THREE.Mesh(geo, clay(s.color,{sheen:1, sheenColor:new THREE.Color('#fff2cc'), clearcoat:0.6, roughness:0.45})));
+    const dm=clay('#fffaf0');
+    for(let i=0;i<5;i++){ const a=Math.PI/2+i*Math.PI*2/5;
+      for(const z of [0.24,-0.24]){ const d=new THREE.Mesh(new THREE.SphereGeometry(0.06,16,12), dm); d.position.set(Math.cos(a)*0.62,Math.sin(a)*0.62,z); d.scale.z=0.6; g.add(d); } }
+    const loop=new THREE.Mesh(new THREE.TorusGeometry(0.11,0.028,12,40), metal(0xd8b25a)); loop.position.y=1.12; g.add(loop);
+    return g;
+  },
+  snowman(){
+    const g=new THREE.Group(), white=clay('#fbf8f2'), black=clay('#2a2420'), red=clay('#c0392b');
+    const ball=(r,y)=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(r,48,32), white); m.position.y=y; g.add(m); };
+    ball(0.8,0); ball(0.58,0.95); ball(0.42,1.72);
+    for(const y of [0.8,1.05]){ const b=new THREE.Mesh(new THREE.SphereGeometry(0.06,16,12), black); b.position.set(0,y,0.56); g.add(b); }
+    for(const x of [-0.14,0.14]){ const e=new THREE.Mesh(new THREE.SphereGeometry(0.045,16,12), black); e.position.set(x,1.82,0.37); g.add(e); }
+    const nose=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.3,16), clay('#e67e22')); nose.rotation.x=Math.PI/2; nose.position.set(0,1.72,0.55); g.add(nose);
+    const scarf=new THREE.Mesh(new THREE.TorusGeometry(0.38,0.09,16,48), red); scarf.rotation.x=Math.PI/2; scarf.position.y=1.36; g.add(scarf);
+    const tail=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.42,0.06), red); tail.position.set(0.22,1.18,0.38); tail.rotation.z=0.25; g.add(tail);
+    const brim=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.06,40), black); brim.position.y=2.06; g.add(brim);
+    const top=new THREE.Mesh(new THREE.CylinderGeometry(0.27,0.29,0.42,40), black); top.position.y=2.29; g.add(top);
+    const band=new THREE.Mesh(new THREE.CylinderGeometry(0.295,0.295,0.08,40), red); band.position.y=2.13; g.add(band);
+    return g;
+  },
+  mug(s, seed){
+    const g=new THREE.Group(), H=2.1, R=1, r=0.9;
+    const tex=patternTexture(s.color, s.ink||'#333', s.pattern||'dots', seed);
+    const glaze=c=>new THREE.MeshPhysicalMaterial({color:c, roughness:0.25, clearcoat:1, clearcoatRoughness:0.1});
+    const outer=new THREE.Mesh(new THREE.CylinderGeometry(R,R*0.93,H,96,1,true,Math.PI,Math.PI*2), new THREE.MeshPhysicalMaterial({map:tex,roughness:0.3,clearcoat:0.9}));
+    const inner=new THREE.Mesh(new THREE.CylinderGeometry(r,r*0.92,H-0.08,96,1,true), glaze(s.color)); inner.material.side=THREE.BackSide; inner.position.y=0.04;
+    const rim=new THREE.Mesh(new THREE.RingGeometry(r,R,96), glaze(s.color)); rim.rotation.x=-Math.PI/2; rim.position.y=H/2;
+    const bottomIn=new THREE.Mesh(new THREE.CircleGeometry(r*0.92,64), glaze(s.color)); bottomIn.rotation.x=-Math.PI/2; bottomIn.position.y=-H/2+0.08;
+    const bottomOut=new THREE.Mesh(new THREE.CircleGeometry(R*0.93,64), glaze('#d9cbb5')); bottomOut.rotation.x=Math.PI/2; bottomOut.position.y=-H/2;
+    const arc=Math.PI*1.25;
+    const handle=new THREE.Mesh(new THREE.TorusGeometry(0.52,0.12,20,60,arc), glaze(s.color));
+    handle.rotation.z=-arc/2; handle.position.x=1.02; handle.scale.set(1,1.05,1);
+    g.add(outer,inner,rim,bottomIn,bottomOut,handle);
+    // объёмный декор из глины спереди
+    const deco=new THREE.Group(), dm=clay(s.ink||'#2f5d50');
+    [[0,-0.2,0.5],[-0.38,-0.35,0.38],[0.38,-0.35,0.38]].forEach(([ang,y,h])=>{
+      const t=new THREE.Mesh(new THREE.ConeGeometry(h*0.42,h,24), dm);
+      t.scale.z=0.35; const a=ang*1.0; t.position.set(Math.sin(a)*0.99, y, Math.cos(a)*0.99); t.rotation.y=a; deco.add(t);
+      const st=new THREE.Mesh(new THREE.SphereGeometry(0.05,12,10), clay('#f2c230')); st.position.set(Math.sin(a)*1.0, y+h/2+0.03, Math.cos(a)*1.0); deco.add(st);
+    });
+    g.add(deco);
+    g.rotation.y=-0.5;
+    return g;
+  },
+  coaster(s, seed){
+    const g=new THREE.Group(), rnd=mulberry32(seed);
+    const pts=[new THREE.Vector2(0,-0.11)];
+    for(let i=0;i<=12;i++){ const a=-Math.PI/2+i/12*Math.PI; pts.push(new THREE.Vector2(1.09+0.11*Math.cos(a),0.11*Math.sin(a))); }
+    pts.push(new THREE.Vector2(0,0.11));
+    g.add(new THREE.Mesh(new THREE.LatheGeometry(pts,120), resin(s.color)));
+    const cols=['#f4a7b9','#ffffff','#c9a7f4','#f7d774','#9fd8a8'];
+    for(let i=0;i<7;i++){ const f=flower(cols[i%cols.length], 0.9+rnd()*0.8);
+      const a=rnd()*Math.PI*2, d=0.15+rnd()*0.7; f.position.set(Math.cos(a)*d,(rnd()-0.5)*0.06,Math.sin(a)*d); f.rotation.y=rnd()*6; g.add(f); }
+    g.add(goldFlakes(40, rnd, (p,r)=>{ const a=r()*Math.PI*2, d=Math.sqrt(r())*0.95; p.set(Math.cos(a)*d,(r()-0.5)*0.12,Math.sin(a)*d); }));
+    g.rotation.x=0.95;
+    return g;
+  },
+  heart(s, seed){
+    const g=new THREE.Group(), rnd=mulberry32(seed), sh=new THREE.Shape();
+    for(let i=0;i<=120;i++){ const t=i/120*Math.PI*2;
+      const x=16*Math.sin(t)**3/16, y=(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/16;
+      i?sh.lineTo(x,y):sh.moveTo(x,y); }
+    const geo=new THREE.ExtrudeGeometry(sh,{depth:0.28,bevelEnabled:true,bevelThickness:0.1,bevelSize:0.08,bevelSegments:6,curveSegments:2});
+    geo.translate(0,0,-0.14);
+    g.add(new THREE.Mesh(geo, resin(s.color)));
+    const f=flower('#ffffff',1.6); f.rotation.x=Math.PI/2; f.position.set(-0.15,0.05,0); g.add(f);
+    const f2=flower('#f4a7b9',1.1); f2.rotation.x=Math.PI/2; f2.position.set(0.3,-0.25,0.02); g.add(f2);
+    g.add(goldFlakes(30, rnd, (p,r)=>{ p.set((r()-0.5)*1.1,(r()-0.6)*0.9,(r()-0.5)*0.16); }));
+    const loop=new THREE.Mesh(new THREE.TorusGeometry(0.12,0.026,12,40), metal(0xd8b25a)); loop.position.set(0,0.42,0); g.add(loop);
+    return g;
+  },
+};
+
+/* Приводим любую модель к единому размеру и центру */
+function normalize(obj){
+  obj.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(obj);
+  const sph=box.getBoundingSphere(new THREE.Sphere());
+  const k=1/(sph.radius||1);
+  obj.position.sub(sph.center).multiplyScalar(k);
+  obj.scale.multiplyScalar(k);
+  const wrap=new THREE.Group(); wrap.add(obj);
+  wrap.userData.minY=(box.min.y-sph.center.y)*k;
+  return wrap;
+}
+const gltfLoader=new GLTFLoader(), stlLoader=new STLLoader();
+const isSTL=url=>/\.stl(\?|$)/i.test(url||'');
+async function loadSTL(p){
+  const geo=await stlLoader.loadAsync(p.model);
+  geo.computeVertexNormals();
+  const col=p.color||'#d9c7b0';
+  const mat= p.material==='resin' ? resin(col)
+           : p.material==='glossy' ? clay(col,{roughness:0.25, clearcoat:1, clearcoatRoughness:0.08, bumpScale:0.1})
+           : clay(col);
+  if(geo.hasColors){ mat.vertexColors=true; mat.color.set('#ffffff'); }  // цветной STL (редко)
+  const mesh=new THREE.Mesh(geo, mat);
+  if(p.zUp!==false) mesh.rotation.x=-Math.PI/2;
+  return mesh;
+}
+async function buildModel(p){
+  if(p.model){
+    try{
+      if(isSTL(p.model)) return normalize(await loadSTL(p));
+      const gltf=await gltfLoader.loadAsync(p.model); return normalize(gltf.scene);
+    }
+    catch(e){ console.warn('Не удалось загрузить', p.model, e); toast('Не удалось загрузить модель — показан образец'); }
+  }
+  const b=BUILDERS[p.shape?.type] || BUILDERS.ornament;
+  return normalize(b(p.shape||{color:'#ccc'}, hashSeed(p.id)));
+}
+function disposeTree(o){
+  o.traverse(m=>{ if(m.geometry) m.geometry.dispose();
+    const mats=Array.isArray(m.material)?m.material:(m.material?[m.material]:[]);
+    mats.forEach(mt=>{ for(const k in mt){ const v=mt[k]; if(v&&v.isTexture&&v!==noiseTex) v.dispose(); } mt.dispose(); }); });
+}
+
+/* Мягкая тень под изделием */
+function shadowDisc(){
+  const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d');
+  const gr=g.createRadialGradient(64,64,0,64,64,64); gr.addColorStop(0,'rgba(70,45,20,.38)'); gr.addColorStop(1,'rgba(70,45,20,0)');
+  g.fillStyle=gr; g.fillRect(0,0,128,128);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(2.3,2.3), new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));
+  m.rotation.x=-Math.PI/2; return m;
+}
+function setupScene(renderer){
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  const scene=new THREE.Scene();
+  const pm=new THREE.PMREMGenerator(renderer);
+  scene.environment=pm.fromScene(new RoomEnvironment(),0.04).texture;
+  const key=new THREE.DirectionalLight(0xfff3e0,1.3); key.position.set(3,5,4); scene.add(key);
+  const rim=new THREE.DirectionalLight(0xdfeaff,0.6); rim.position.set(-4,2,-3); scene.add(rim);
+  const shadow=shadowDisc(); scene.add(shadow);
+  return {scene, shadow};
+}
+function fitCamera(cam){
+  const vf=THREE.MathUtils.degToRad(cam.fov)/2, hf=Math.atan(Math.tan(vf)*cam.aspect);
+  const d=1.12/Math.sin(Math.min(vf,hf));
+  cam.position.set(0, d*0.22, d*0.975); cam.lookAt(0,0,0);
+  return d;
+}
+
+/* =====================================================================
+   3D-ПРОСМОТР
+   ===================================================================== */
+const V={ ready:false, running:false, idx:0, model:null, spin:true, token:0 };
+function initViewer(){
+  const canvas=$('#stage');
+  V.renderer=new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  V.renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  Object.assign(V, setupScene(V.renderer));
+  V.camera=new THREE.PerspectiveCamera(32,1,0.05,100);
+  V.controls=new OrbitControls(V.camera, canvas);
+  Object.assign(V.controls,{enableDamping:true, dampingFactor:0.08, enablePan:false, autoRotate:true, autoRotateSpeed:2.2, rotateSpeed:0.9});
+  let idle;
+  V.controls.addEventListener('start',()=>{ V.controls.autoRotate=false; clearTimeout(idle); $('#hint').classList.add('off'); });
+  V.controls.addEventListener('end',()=>{ idle=setTimeout(()=>{ if(V.spin) V.controls.autoRotate=true; },4000); });
+  new ResizeObserver(resizeViewer).observe($('#stageWrap'));
+  V.ready=true;
+}
+function resizeViewer(){
+  const w=$('#stageWrap').clientWidth, h=$('#stageWrap').clientHeight; if(!w||!h) return;
+  V.renderer.setSize(w,h,false); V.camera.aspect=w/h; V.camera.updateProjectionMatrix();
+}
+function resetView(){
+  const d=fitCamera(V.camera); V.controls.target.set(0,0,0);
+  V.controls.minDistance=d*0.45; V.controls.maxDistance=d*1.8; V.controls.update();
+}
+function loop(){ if(!V.running) return; requestAnimationFrame(loop); V.controls.update(); V.renderer.render(V.scene,V.camera); }
+
+async function openProduct(id){
+  const p=byId[id]; if(!p) return showCatalog();
+  V.idx=PRODUCTS.indexOf(p);
+  $('#catalog').hidden=true; $('#labels').hidden=true; $('#viewer').hidden=false;
+  document.title=`${p.name} — 3D | ${SHOP.name}`;
+  $('#vCat').textContent=p.category; $('#vName').textContent=p.name; $('#vPrice').textContent=p.price||'';
+  $('#vSpecs').innerHTML=(p.specs||[]).map(s=>`<li>${esc(s)}</li>`).join('');
+  $('#vDesc').textContent=p.desc||'';
+  $('#btnOrder').href=SHOP.vkMessages;
+  setupAR(p);
+  if(!V.ready) initViewer();
+  resizeViewer(); resetView();
+  if(!V.running){ V.running=true; loop(); }
+  $('#hint').classList.remove('off'); setTimeout(()=>$('#hint').classList.add('off'),5000);
+  const tok=++V.token; $('#loader').hidden=false;
+  const m=await buildModel(p);
+  if(tok!==V.token){ disposeTree(m); return; }   // пользователь уже открыл другой товар
+  if(V.model){ V.scene.remove(V.model); disposeTree(V.model); }
+  V.model=m; V.scene.add(m); V.shadow.position.y=m.userData.minY-0.01;
+  $('#loader').hidden=true; resetView();
+}
+function closeViewer(){ V.running=false; V.token++; $('#viewer').hidden=true; }
+
+/* AR — только если для товара есть свой .glb (Android) / .usdz (iPhone) */
+function setupAR(p){
+  const a=$('#btnAR'); a.hidden=true; a.removeAttribute('rel'); a.innerHTML='▣ В комнате (AR)';
+  const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua)||(/Mac/.test(ua)&&navigator.maxTouchPoints>1), android=/Android/.test(ua);
+  if(ios && p.usdz){ a.rel='ar'; a.href=new URL(p.usdz,location.href).href; a.innerHTML='<img alt="" style="display:none">▣ В комнате (AR)'; a.hidden=false; }
+  else if(android && p.model && !isSTL(p.model)){
+    const file=encodeURIComponent(new URL(p.model,location.href).href);
+    a.href=`intent://arvr.google.com/scene-viewer/1.0?file=${file}&mode=ar_preferred#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(location.href)};end;`;
+    a.hidden=false;
+  }
+}
+
+/* Кнопки просмотра */
+$('#btnBack').onclick=()=>{ location.hash=''; };
+$('#btnSpin').onclick=e=>{ V.spin=!V.spin; V.controls.autoRotate=V.spin; e.currentTarget.classList.toggle('on',V.spin); };
+$('#btnReset').onclick=()=>resetView();
+$('#btnPrev').onclick=()=>{ location.hash=PRODUCTS[(V.idx-1+PRODUCTS.length)%PRODUCTS.length].id; };
+$('#btnNext').onclick=()=>{ location.hash=PRODUCTS[(V.idx+1)%PRODUCTS.length].id; };
+function productUrl(p, base){ return (base||location.href.split('#')[0])+'#'+p.id; }
+async function copy(text){ try{ await navigator.clipboard.writeText(text); return true; }catch(e){ return false; } }
+$('#btnOrder').addEventListener('click',async()=>{
+  const p=PRODUCTS[V.idx];
+  const ok=await copy(`Здравствуйте! Хочу заказать: ${p.name} (${p.price}). ${productUrl(p)}`);
+  if(ok) toast('Текст заказа скопирован — вставьте его в сообщение');
+});
+$('#btnShare').onclick=async()=>{
+  const p=PRODUCTS[V.idx], url=productUrl(p);
+  if(navigator.share){ try{ await navigator.share({title:p.name, text:`${p.name} — посмотрите в 3D`, url}); return; }catch(e){ if(e.name==='AbortError') return; } }
+  toast(await copy(url) ? 'Ссылка скопирована' : url);
+};
+
+/* =====================================================================
+   КАТАЛОГ + превью, отрисованные из 3D-моделей
+   ===================================================================== */
+let activeCat='Все';
+function renderCatalog(){
+  const cats=['Все',...new Set(PRODUCTS.map(p=>p.category))];
+  $('#cats').innerHTML=cats.map(c=>`<button class="chip${c===activeCat?' on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');
+  $('#grid').innerHTML=PRODUCTS.filter(p=>activeCat==='Все'||p.category===activeCat).map(p=>`
+    <a class="card" href="#${esc(p.id)}">
+      <div class="thumb"><img data-thumb="${esc(p.id)}" alt="${esc(p.name)}" ${thumbs[p.id]?`src="${thumbs[p.id]}"`:''}><span class="t3d">3D</span></div>
+      <div class="info"><p class="name">${esc(p.name)}</p><p class="meta">${esc((p.specs||[])[0]||p.category)}</p><div class="price">${esc(p.price||'')}</div></div>
+    </a>`).join('');
+}
+$('#cats').addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b) return; activeCat=b.dataset.c; renderCatalog(); });
+
+const thumbs={};
+async function renderThumbs(){
+  const r=new THREE.WebGLRenderer({antialias:true, alpha:true, preserveDrawingBuffer:true});
+  r.setPixelRatio(1); r.setSize(420,420);
+  const {scene, shadow}=setupScene(r);
+  const cam=new THREE.PerspectiveCamera(30,1,0.05,100); fitCamera(cam);
+  for(const p of PRODUCTS){
+    if(p.photo){ thumbs[p.id]=p.photo; }
+    else{
+      const m=await buildModel(p); m.rotation.y=-0.35; scene.add(m); shadow.position.y=m.userData.minY-0.01;
+      r.render(scene,cam); thumbs[p.id]=r.domElement.toDataURL('image/png');
+      scene.remove(m); disposeTree(m);
+    }
+    document.querySelectorAll(`[data-thumb="${CSS.escape(p.id)}"]`).forEach(img=>img.src=thumbs[p.id]);
+    await new Promise(requestAnimationFrame);
+  }
+  r.dispose();
+}
+
+/* =====================================================================
+   QR-этикетки
+   ===================================================================== */
+function renderLabels(){
+  const base=$('#baseUrl').value.trim()||location.href.split('#')[0];
+  if(typeof qrcode!=='function'){ $('#lgrid').innerHTML='<p>Не удалось загрузить генератор QR — проверьте интернет.</p>'; return; }
+  $('#lgrid').innerHTML=PRODUCTS.map(p=>{
+    const q=qrcode(0,'M'); q.addData(productUrl(p, base)); q.make();
+    return `<div class="label"><div class="qr">${q.createSvgTag({cellSize:4,margin:0,scalable:true})}</div>
+      <p class="ln">${esc(p.name)}</p><p class="lp">${esc(p.price||'')}</p><p class="lh">Наведите камеру — покрутите в 3D</p></div>`;
+  }).join('');
+}
+$('#baseUrl').addEventListener('input',renderLabels);
+$('#btnPrint').onclick=()=>{ try{ window.print(); }catch(e){ toast('Печать недоступна в этом окне — откройте страницу в браузере'); } };
+
+/* =====================================================================
+   НАВИГАЦИЯ по адресу: #id-товара открывает его 3D сразу (для QR и ВК)
+   ===================================================================== */
+function showCatalog(){
+  closeViewer(); $('#labels').hidden=true; $('#catalog').hidden=false; document.title=SHOP.name+' — 3D-витрина';
+}
+function route(){
+  const h=decodeURIComponent(location.hash.slice(1));
+  if(h==='labels'){ closeViewer(); $('#catalog').hidden=true; $('#labels').hidden=false; renderLabels(); }
+  else if(byId[h]) openProduct(h);
+  else showCatalog();
+}
+$('#shopName').textContent=SHOP.name; $('#shopTag').textContent=SHOP.tagline; $('#vkLink').href=SHOP.vk;
+$('#baseUrl').value=location.href.split('#')[0];
+renderCatalog();
+addEventListener('hashchange',route);
+route();
+renderThumbs();
+</script>
+</body>
+</html>
