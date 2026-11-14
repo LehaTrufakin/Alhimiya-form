@@ -116,6 +116,7 @@
 
 <!-- ===== Каталог ===== -->
 <div id="catalog">
+  <div id="cfgWarn" hidden style="background:#b23a48;color:#fff;padding:12px 16px;font-weight:700;text-align:center;line-height:1.4"></div>
   <header class="top">
     <h1 id="shopName"></h1>
     <p id="shopTag"></p>
@@ -134,6 +135,7 @@
   <div class="stage-wrap" id="stageWrap">
     <canvas id="stage"></canvas>
     <div class="loader" id="loader">Загружаем 3D-модель…</div>
+    <div id="modelNote" hidden style="position:absolute;left:12px;right:12px;top:calc(64px + env(safe-area-inset-top));background:#b23a48;color:#fff;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:700;text-align:center"></div>
     <button class="icon back" id="btnBack" aria-label="Назад к каталогу">←</button>
     <div class="hint" id="hint">Крутите пальцем · щипок — приблизить</div>
     <div class="tools">
@@ -176,18 +178,45 @@
 <div id="toast"></div>
 
 <!-- Ваши настройки и товары — в файле products.js -->
-<script src="products.js"></script>
+<script>
+  window.__cfgErr = '';
+  addEventListener('error', function(e){
+    if (e.filename && e.filename.indexOf('products.js') !== -1)
+      window.__cfgErr = 'Ошибка в products.js, строка ' + e.lineno + ': ' + e.message;
+  });
+</script>
+<script src="products.js" onerror="window.__cfgErr='Файл products.js не найден рядом с index.html'"></script>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 /* =====================================================================
    1. НАСТРОЙКИ МАГАЗИНА — поменяйте на свои
    ===================================================================== */
-const SHOP = window.SHOP_CONFIG?.shop || {
+/* Если браузер «перевёл» ключи на русский — тоже понимаем */
+const CFG = window.SHOP_CONFIG || null;
+const cfgShop = CFG && (CFG.shop || CFG['магазин']);
+if (cfgShop) {
+  cfgShop.vk ??= cfgShop['вконтакте'] ?? cfgShop['ВКонтакте'] ?? cfgShop['вк'];
+  cfgShop.vkMessages ??= cfgShop['Сообщения ВКонтакте'] ?? cfgShop['сообщения ВКонтакте'] ?? cfgShop.vk;
+  cfgShop.name ??= cfgShop['название'] ?? cfgShop['имя'];
+}
+const cfgProducts = CFG && (CFG.products || CFG['продукты'] || CFG['товары']);
+if (cfgProducts) cfgProducts.forEach(p => {
+  p.model ??= p['модель']; p.price ??= p['цена']; p.name ??= p['название'];
+  p.category ??= p['категория']; p.desc ??= p['описание'];
+  p.specs ??= p['характеристики'] ?? p['спецификация'] ?? p['спецификации'];
+  p.id ??= p['идентификатор'] ?? p['идентификационный номер'] ?? p['ид'];
+  p.id = String(p.id ?? '');
+});
+const cfgProblem = !CFG ? (window.__cfgErr || 'Файл products.js не загрузился')
+  : !cfgProducts ? 'В products.js не найден список products' : '';
+const SHOP = cfgShop || {
   name: 'Мастерская зимних чудес',
   tagline: 'Полимерная глина и эпоксидная смола · ручная работа',
   vk: 'https://vk.com/your_group',          // страница сообщества
@@ -208,7 +237,7 @@ const SHOP = window.SHOP_CONFIG?.shop || {
    usdz    — (необязательно) .usdz для AR на iPhone
    shape   — простая модель: ornament | star | snowman | mug | coaster | heart
    ===================================================================== */
-const PRODUCTS = window.SHOP_CONFIG?.products || [
+const PRODUCTS = cfgProducts || [
   /* ▼ ПРИМЕР ВАШЕЙ МОДЕЛИ: положите файл model.stl рядом с index.html */
   { id:'my-item', name:'Моё изделие', category:'Новинки',
     price:'— ₽', specs:['Полимерная глина','ручная работа'],
@@ -260,6 +289,7 @@ const PRODUCTS = window.SHOP_CONFIG?.products || [
 /* ===================================================================== */
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+PRODUCTS.forEach((p,i)=>{ if(!p.id) p.id='item-'+(i+1); });
 const byId = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
 
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2600); }
@@ -439,6 +469,9 @@ function normalize(obj){
   return wrap;
 }
 const gltfLoader=new GLTFLoader(), stlLoader=new STLLoader();
+// поддержка сжатых моделей (Draco и Meshopt) — так модели весят в 5–10 раз меньше
+const draco=new DRACOLoader(); draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
+gltfLoader.setDRACOLoader(draco); gltfLoader.setMeshoptDecoder(MeshoptDecoder);
 const isSTL=url=>/\.stl(\?|$)/i.test(url||'');
 async function loadSTL(p){
   const geo=await stlLoader.loadAsync(p.model);
@@ -458,11 +491,16 @@ async function buildModel(p){
       if(isSTL(p.model)) return normalize(await loadSTL(p));
       const gltf=await gltfLoader.loadAsync(p.model); return normalize(gltf.scene);
     }
-    catch(e){ console.warn('Не удалось загрузить', p.model, e); toast('Не удалось загрузить модель — показан образец'); }
-  }
+    catch(e){
+      console.warn('Не удалось загрузить', p.model, e);
+      const why = /404|Not Found/i.test(String(e?.message||e)) ? 'файл не найден — проверьте имя и регистр букв' : 'файл повреждён или слишком тяжёлый';
+      modelNote(`Не удалось открыть «${p.model}»: ${why}. Показан образец.`);
+    }
+  } else if (!p.shape) modelNote('У этого товара в products.js не указана строка model — показан образец.');
   const b=BUILDERS[p.shape?.type] || BUILDERS.ornament;
   return normalize(b(p.shape||{color:'#ccc'}, hashSeed(p.id)));
 }
+function modelNote(t){ const n=document.getElementById('modelNote'); if(n){ n.textContent='⚠ '+t; n.hidden=false; } }
 function disposeTree(o){
   o.traverse(m=>{ if(m.geometry) m.geometry.dispose();
     const mats=Array.isArray(m.material)?m.material:(m.material?[m.material]:[]);
@@ -537,7 +575,7 @@ async function openProduct(id){
   resizeViewer(); resetView();
   if(!V.running){ V.running=true; loop(); }
   $('#hint').classList.remove('off'); setTimeout(()=>$('#hint').classList.add('off'),5000);
-  const tok=++V.token; $('#loader').hidden=false;
+  const tok=++V.token; $('#loader').hidden=false; $('#modelNote').hidden=true;
   const m=await buildModel(p);
   if(tok!==V.token){ disposeTree(m); return; }   // пользователь уже открыл другой товар
   if(V.model){ V.scene.remove(V.model); disposeTree(V.model); }
@@ -640,6 +678,11 @@ function route(){
 }
 $('#shopName').textContent=SHOP.name; $('#shopTag').textContent=SHOP.tagline; $('#vkLink').href=SHOP.vk;
 $('#baseUrl').value=location.href.split('#')[0];
+if (cfgProblem) {
+  const w=$('#cfgWarn'); w.hidden=false;
+  w.textContent='⚠ Ваши товары не загрузились — показаны демо-товары. Причина: '+cfgProblem;
+  console.warn(cfgProblem);
+}
 renderCatalog();
 addEventListener('hashchange',route);
 route();
