@@ -14,7 +14,7 @@ window.SHOP_CONFIG = {
     name:       'Алхимия форм',
     tagline:    'Полимерная глина и смола ручной работы',
     vk:         'https://vk.ru/club241650475',   // ссылка на вашу группу
-    vkMessages: 'https://vk.me/your_group',    // та же группа, но vk.me — откроет диалог
+    vkMessages: 'https://vk.ru/club241650475',    // та же группа, но vk.me — откроет диалог
   },
 
   /* ---------- 2. ТОВАРЫ ---------- */
