@@ -100,6 +100,50 @@
     .lgrid{grid-template-columns:repeat(3,1fr);gap:6mm}
   }
 
+  /* ---------- Ярмарка ---------- */
+  .fair-top{position:relative;text-align:center;color:#fff;padding:46px 18px 30px;
+    background:radial-gradient(circle at 20% 30%,rgba(255,255,255,.9) 0 1.5px,transparent 2.5px) 0 0/90px 90px,
+               radial-gradient(circle at 60% 70%,rgba(255,255,255,.7) 0 1px,transparent 2px) 0 0/70px 70px,
+               linear-gradient(180deg,#14284a 0%,#23436b 70%,#2f5d50 100%)}
+  .fair-top h1{font-family:Comfortaa,sans-serif;font-size:clamp(24px,6vw,40px);margin:0 0 8px;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+  .fair-top p{margin:0;opacity:.9}
+  .garland{position:absolute;left:0;right:0;top:6px;height:30px;
+    background:radial-gradient(circle,#ffd54a 0 5px,transparent 6px) 0 8px/66px 22px repeat-x,
+               radial-gradient(circle,#ff5a6a 0 5px,transparent 6px) 22px 14px/66px 22px repeat-x,
+               radial-gradient(circle,#59d6b0 0 5px,transparent 6px) 44px 8px/66px 22px repeat-x;
+    filter:drop-shadow(0 0 6px rgba(255,220,120,.8));animation:blink 2.4s infinite alternate}
+  @keyframes blink{to{filter:drop-shadow(0 0 2px rgba(255,220,120,.3));opacity:.85}}
+  .rent-top{display:inline-block;margin-top:16px;background:#ffd54a;color:#3b2a1e;text-decoration:none;font-weight:800;padding:9px 16px;border-radius:99px;font-size:14px}
+  .street{display:grid;grid-template-columns:repeat(2,1fr);gap:18px 12px;padding:22px 14px 30px;max-width:1100px;margin:0 auto}
+  @media(min-width:700px){.street{grid-template-columns:repeat(3,1fr);gap:24px 18px}}
+  @media(min-width:1000px){.street{grid-template-columns:repeat(4,1fr)}}
+  .stall{--c:#b23a48;position:relative;display:flex;flex-direction:column;text-decoration:none;color:var(--ink);
+    background:linear-gradient(#a8784c,#82552f);border-radius:12px 12px 8px 8px;padding-bottom:10px;
+    box-shadow:0 10px 20px -12px rgba(60,35,10,.6);transition:transform .15s}
+  .stall:active{transform:scale(.98)}
+  @media(hover:hover){.stall:hover{transform:translateY(-4px)}}
+  .awning{position:relative;height:30px;border-radius:12px 12px 0 0;background:repeating-linear-gradient(90deg,var(--c) 0 22px,#fff6e8 22px 44px)}
+  .awning::after{content:"";position:absolute;left:0;right:0;top:100%;height:10px;
+    background:radial-gradient(circle at 11px 0,var(--c) 10px,transparent 10.5px) 0 0/44px 10px repeat-x,
+               radial-gradient(circle at 33px 0,#fff6e8 10px,transparent 10.5px) 0 0/44px 10px repeat-x}
+  .stall .sign{margin:16px 10px 0;min-height:2.8em;display:flex;align-items:center;justify-content:center;text-align:center;
+    background:#3b2a1e;color:#ffe9c4;border:2px solid #d9b382;border-radius:8px;padding:6px;font-family:Comfortaa,sans-serif;font-weight:700;font-size:14px;line-height:1.2}
+  .stall .window{margin:8px 10px 0;aspect-ratio:4/3;border-radius:8px;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding:6px;
+    background:radial-gradient(ellipse at 50% 30%,#fffdf8,#f0e1cb);box-shadow:inset 0 2px 8px rgba(0,0,0,.15)}
+  .stall .window img{width:33%;aspect-ratio:1;object-fit:contain}
+  .stall .counter{margin:8px 10px 0;background:#ecd6b4;color:#5b3d22;border-radius:6px;text-align:center;font-size:12px;font-weight:800;padding:6px}
+  .stall.empty{--c:#8f9aa1;filter:saturate(.75)}
+  .stall .shutter{background:repeating-linear-gradient(#c3c9cc 0 9px,#a9b1b5 9px 11px);align-items:center}
+  .paper{background:#fff;transform:rotate(-4deg);padding:8px 10px;box-shadow:0 3px 8px rgba(0,0,0,.25);text-align:center;font-size:12px;max-width:88%;line-height:1.3}
+  .paper b{display:block;color:var(--berry);font-family:Comfortaa,sans-serif;font-size:16px;margin-bottom:2px}
+  .stall.empty .counter{background:#ffd54a;color:#3b2a1e}
+  .fair-photo{position:relative;max-width:1100px;margin:16px auto 0;border-radius:16px;overflow:hidden}
+  .fair-photo img{width:100%;display:block}
+  .pin{position:absolute;transform:translate(-50%,-50%);background:#fff;color:var(--ink);border:3px solid var(--c,#b23a48);padding:6px 11px;border-radius:99px;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+  .pin.free{background:#ffd54a;border-color:#fff;color:#3b2a1e}
+  .to-fair{display:inline-block;margin:14px 0 0 14px;font-weight:800;color:var(--pine);text-decoration:none}
+
+  .thumb img:not([src]),.stall .window img:not([src]){visibility:hidden}
   #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:50;transition:.25s;max-width:90vw;text-align:center;pointer-events:none}
   #toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -114,9 +158,24 @@
 </head>
 <body>
 
-<!-- ===== Каталог ===== -->
-<div id="catalog">
-  <div id="cfgWarn" hidden style="background:#b23a48;color:#fff;padding:12px 16px;font-weight:700;text-align:center;line-height:1.4"></div>
+<div id="cfgWarn" hidden style="background:#b23a48;color:#fff;padding:12px 16px;font-weight:700;text-align:center;line-height:1.4"></div>
+
+<!-- ===== Ярмарка: торговые ряды ===== -->
+<section id="fair" hidden>
+  <header class="fair-top">
+    <div class="garland"></div>
+    <h1 id="fairName"></h1>
+    <p id="fairTag"></p>
+    <a id="rentTop" class="rent-top" target="_blank" rel="noopener" hidden></a>
+  </header>
+  <div class="fair-photo" id="fairPhoto" hidden></div>
+  <div class="street" id="street"></div>
+  <footer class="noprint"><a href="#labels">QR-этикетки для печати</a></footer>
+</section>
+
+<!-- ===== Витрина мастерской ===== -->
+<div id="catalog" hidden>
+  <a class="to-fair" id="toFair" href="#" hidden>← Вся ярмарка</a>
   <header class="top">
     <h1 id="shopName"></h1>
     <p id="shopTag"></p>
@@ -125,7 +184,7 @@
   <nav class="cats" id="cats"></nav>
   <main class="grid" id="grid"></main>
   <footer class="noprint">
-    <a id="vkLink" target="_blank" rel="noopener">Мы во ВКонтакте</a> ·
+    <a id="vkLink" target="_blank" rel="noopener">Мастерская во ВКонтакте</a> ·
     <a href="#labels">QR-этикетки для печати</a>
   </footer>
 </div>
@@ -169,7 +228,7 @@
     <div class="lrow">
       <input id="baseUrl" type="url" placeholder="https://ваш-сайт/vitrina/">
       <button class="btn" id="btnPrint" style="flex:0 0 auto">Печать</button>
-      <a class="btn" href="#" style="flex:0 0 auto">← Каталог</a>
+      <a class="btn" href="#" style="flex:0 0 auto">← Назад</a>
     </div>
   </div>
   <div class="lgrid" id="lgrid"></div>
@@ -181,11 +240,13 @@
 <script>
   window.__cfgErr = '';
   addEventListener('error', function(e){
-    if (e.filename && e.filename.indexOf('products.js') !== -1)
-      window.__cfgErr = 'Ошибка в products.js, строка ' + e.lineno + ': ' + e.message;
+    var f = e.filename || '';
+    if (f.indexOf('products.js') !== -1 || f.indexOf('fair.js') !== -1)
+      window.__cfgErr = 'Ошибка в ' + (f.indexOf('fair.js') !== -1 ? 'fair.js' : 'products.js') + ', строка ' + e.lineno + ': ' + e.message;
   });
 </script>
-<script src="products.js" onerror="window.__cfgErr='Файл products.js не найден рядом с index.html'"></script>
+<script src="products.js" onerror="window.__noProducts=1"></script>
+<script src="fair.js" onerror="window.__noFair=1"></script>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -214,8 +275,9 @@ if (cfgProducts) cfgProducts.forEach(p => {
   p.id ??= p['идентификатор'] ?? p['идентификационный номер'] ?? p['ид'];
   p.id = String(p.id ?? '');
 });
-const cfgProblem = !CFG ? (window.__cfgErr || 'Файл products.js не загрузился')
-  : !cfgProducts ? 'В products.js не найден список products' : '';
+const cfgProblem = window.FAIR_CONFIG ? (window.FAIR_CONFIG.shops ? '' : 'В fair.js не найден список shops')
+  : CFG ? (cfgProducts ? '' : 'В products.js не найден список products')
+  : (window.__cfgErr || 'Не найдены файлы fair.js или products.js рядом с index.html');
 const SHOP = cfgShop || {
   name: 'Мастерская зимних чудес',
   tagline: 'Полимерная глина и эпоксидная смола · ручная работа',
@@ -289,8 +351,38 @@ const PRODUCTS = cfgProducts || [
 /* ===================================================================== */
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-PRODUCTS.forEach((p,i)=>{ if(!p.id) p.id='item-'+(i+1); });
-const byId = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+/* =====================================================================
+   ЯРМАРКА: несколько мастерских (fair.js) или одна витрина (products.js)
+   ===================================================================== */
+function normP(p){
+  p.model ??= p['модель']; p.price ??= p['цена']; p.name ??= p['название'];
+  p.category ??= p['категория']; p.desc ??= p['описание'];
+  p.specs ??= p['характеристики'] ?? p['спецификация'] ?? p['спецификации'];
+  p.id ??= p['идентификатор'] ?? p['идентификационный номер'] ?? p['ид'];
+  p.id = String(p.id ?? '');
+}
+const FAIR_CFG = window.FAIR_CONFIG || null;
+const FAIR = FAIR_CFG ? Object.assign({
+    name:'Ярмарка мастеров', tagline:'', rentVk:'#', rentTitle:'Сдаётся',
+    rentText:'Место свободно — нажмите, чтобы узнать условия', rentBanner:'Хотите своё место на ярмарке? Условия аренды →'
+  }, FAIR_CFG.fair || {}) : null;
+const STALLS = FAIR ? (FAIR_CFG.shops || []) : [{ id:'shop', ...SHOP, products: PRODUCTS }];
+const SHOPS = STALLS.filter(s => s && !s.empty);
+const ALL = [];
+SHOPS.forEach((sh,i) => {
+  sh.id = String(sh.id || ('shop-'+(i+1)));
+  sh.vkMessages ??= sh.vk;
+  sh.products = sh.products || [];
+  sh.products.forEach((p,k) => {
+    normP(p); if(!p.id) p.id='item-'+(k+1);
+    p.shop = sh; p.gid = FAIR ? sh.id+'--'+p.id : p.id;
+    ALL.push(p);
+  });
+});
+const byId = {}, idCount = {};
+ALL.forEach(p => idCount[p.id] = (idCount[p.id]||0)+1);
+ALL.forEach(p => { byId[p.gid] = p; if (idCount[p.id]===1 && !(p.id in byId)) byId[p.id] = p; }); // старые ссылки #tovar-1 тоже работают
+const shopById = Object.fromEntries(SHOPS.map(sh => [sh.id, sh]));
 
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'),2600); }
 function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
@@ -561,15 +653,19 @@ function resetView(){
 }
 function loop(){ if(!V.running) return; requestAnimationFrame(loop); V.controls.update(); V.renderer.render(V.scene,V.camera); }
 
-async function openProduct(id){
-  const p=byId[id]; if(!p) return showCatalog();
-  V.idx=PRODUCTS.indexOf(p);
-  $('#catalog').hidden=true; $('#labels').hidden=true; $('#viewer').hidden=false;
-  document.title=`${p.name} — 3D | ${SHOP.name}`;
-  $('#vCat').textContent=p.category; $('#vName').textContent=p.name; $('#vPrice').textContent=p.price||'';
+let curShop = null;
+async function openProduct(gid){
+  const p=byId[gid]; if(!p) return route0();
+  curShop=p.shop; V.list=p.shop.products; V.idx=V.list.indexOf(p); V.p=p;
+  $('#fair').hidden=true; $('#catalog').hidden=true; $('#labels').hidden=true; $('#viewer').hidden=false;
+  document.title=`${p.name} — 3D | ${p.shop.name}`;
+  $('#vCat').textContent = FAIR ? [p.shop.name, p.category].filter(Boolean).join(' · ') : (p.category||'');
+  $('#vName').textContent=p.name; $('#vPrice').textContent=p.price||'';
   $('#vSpecs').innerHTML=(p.specs||[]).map(s=>`<li>${esc(s)}</li>`).join('');
   $('#vDesc').textContent=p.desc||'';
-  $('#btnOrder').href=SHOP.vkMessages;
+  $('#btnOrder').href=p.shop.vkMessages||p.shop.vk||'#';
+  $('#btnOrder').textContent = FAIR ? `Заказать у «${p.shop.name}»` : 'Заказать во ВКонтакте';
+  const many = V.list.length>1; $('#btnPrev').style.visibility=$('#btnNext').style.visibility = many?'':'hidden';
   setupAR(p);
   if(!V.ready) initViewer();
   resizeViewer(); resetView();
@@ -577,7 +673,7 @@ async function openProduct(id){
   $('#hint').classList.remove('off'); setTimeout(()=>$('#hint').classList.add('off'),5000);
   const tok=++V.token; $('#loader').hidden=false; $('#modelNote').hidden=true;
   const m=await buildModel(p);
-  if(tok!==V.token){ disposeTree(m); return; }   // пользователь уже открыл другой товар
+  if(tok!==V.token){ disposeTree(m); return; }
   if(V.model){ V.scene.remove(V.model); disposeTree(V.model); }
   V.model=m; V.scene.add(m); V.shadow.position.y=m.userData.minY-0.01;
   $('#loader').hidden=true; resetView();
@@ -597,38 +693,88 @@ function setupAR(p){
 }
 
 /* Кнопки просмотра */
-$('#btnBack').onclick=()=>{ location.hash=''; };
+$('#btnBack').onclick=()=>{ location.hash = (FAIR && V.p) ? V.p.shop.id : ''; };
 $('#btnSpin').onclick=e=>{ V.spin=!V.spin; V.controls.autoRotate=V.spin; e.currentTarget.classList.toggle('on',V.spin); };
 $('#btnReset').onclick=()=>resetView();
-$('#btnPrev').onclick=()=>{ location.hash=PRODUCTS[(V.idx-1+PRODUCTS.length)%PRODUCTS.length].id; };
-$('#btnNext').onclick=()=>{ location.hash=PRODUCTS[(V.idx+1)%PRODUCTS.length].id; };
-function productUrl(p, base){ return (base||location.href.split('#')[0])+'#'+p.id; }
+$('#btnPrev').onclick=()=>{ const L=V.list; location.hash=L[(V.idx-1+L.length)%L.length].gid; };
+$('#btnNext').onclick=()=>{ const L=V.list; location.hash=L[(V.idx+1)%L.length].gid; };
+function pageBase(){ return location.href.split('#')[0]; }
+function productUrl(p, base){ return (base||pageBase())+'#'+p.gid; }
 async function copy(text){ try{ await navigator.clipboard.writeText(text); return true; }catch(e){ return false; } }
 $('#btnOrder').addEventListener('click',async()=>{
-  const p=PRODUCTS[V.idx];
-  const ok=await copy(`Здравствуйте! Хочу заказать: ${p.name} (${p.price}). ${productUrl(p)}`);
+  const p=V.p;
+  const ok=await copy(`Здравствуйте! Хочу заказать: ${p.name} (${p.price||''}). ${productUrl(p)}`);
   if(ok) toast('Текст заказа скопирован — вставьте его в сообщение');
 });
 $('#btnShare').onclick=async()=>{
-  const p=PRODUCTS[V.idx], url=productUrl(p);
+  const p=V.p, url=productUrl(p);
   if(navigator.share){ try{ await navigator.share({title:p.name, text:`${p.name} — посмотрите в 3D`, url}); return; }catch(e){ if(e.name==='AbortError') return; } }
   toast(await copy(url) ? 'Ссылка скопирована' : url);
 };
 
 /* =====================================================================
-   КАТАЛОГ + превью, отрисованные из 3D-моделей
+   ВИТРИНА МАСТЕРСКОЙ
    ===================================================================== */
 let activeCat='Все';
+function thumbImg(p){ return `<img data-thumb="${esc(p.gid)}" alt="${esc(p.name)}" ${thumbs[p.gid]?`src="${thumbs[p.gid]}"`:''}>`; }
 function renderCatalog(){
-  const cats=['Все',...new Set(PRODUCTS.map(p=>p.category))];
-  $('#cats').innerHTML=cats.map(c=>`<button class="chip${c===activeCat?' on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');
-  $('#grid').innerHTML=PRODUCTS.filter(p=>activeCat==='Все'||p.category===activeCat).map(p=>`
-    <a class="card" href="#${esc(p.id)}">
-      <div class="thumb"><img data-thumb="${esc(p.id)}" alt="${esc(p.name)}" ${thumbs[p.id]?`src="${thumbs[p.id]}"`:''}><span class="t3d">3D</span></div>
-      <div class="info"><p class="name">${esc(p.name)}</p><p class="meta">${esc((p.specs||[])[0]||p.category)}</p><div class="price">${esc(p.price||'')}</div></div>
-    </a>`).join('');
+  const list=curShop.products;
+  const cats=['Все',...new Set(list.map(p=>p.category).filter(Boolean))];
+  $('#cats').innerHTML = cats.length>2 ? cats.map(c=>`<button class="chip${c===activeCat?' on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('') : '';
+  $('#grid').innerHTML=list.filter(p=>activeCat==='Все'||p.category===activeCat).map(p=>`
+    <a class="card" href="#${esc(p.gid)}">
+      <div class="thumb">${thumbImg(p)}<span class="t3d">3D</span></div>
+      <div class="info"><p class="name">${esc(p.name)}</p><p class="meta">${esc((p.specs||[])[0]||p.category||'')}</p><div class="price">${esc(p.price||'')}</div></div>
+    </a>`).join('') || '<p style="grid-column:1/-1;text-align:center;color:var(--muted)">Товары скоро появятся</p>';
 }
 $('#cats').addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b) return; activeCat=b.dataset.c; renderCatalog(); });
+function showCatalog(sh){
+  closeViewer(); curShop=sh; activeCat='Все';
+  $('#fair').hidden=true; $('#labels').hidden=true; $('#catalog').hidden=false;
+  $('#shopName').textContent=sh.name||''; $('#shopTag').textContent=sh.tagline||'';
+  $('#vkLink').href=sh.vk||'#'; $('#vkLink').hidden=!sh.vk;
+  $('#toFair').hidden=!FAIR;
+  document.title=(sh.name||'Витрина')+' — 3D-витрина';
+  renderCatalog(); scrollTo(0,0);
+}
+
+/* =====================================================================
+   ЯРМАРКА: торговые ряды
+   ===================================================================== */
+function stallHtml(st,i){
+  if(st.empty){
+    const href=st.rentVk||FAIR.rentVk;
+    return `<a class="stall empty" href="${esc(href)}" target="_blank" rel="noopener">
+      <div class="awning"></div><div class="sign">Место № ${i+1}</div>
+      <div class="window shutter"><div class="paper"><b>${esc(st.title||FAIR.rentTitle)}</b><span>${esc(st.text||FAIR.rentText)}</span></div></div>
+      <div class="counter">Арендовать →</div></a>`;
+  }
+  const n=st.products.length;
+  return `<a class="stall" href="#${esc(st.id)}" style="--c:${esc(st.color||'#b23a48')}">
+    <div class="awning"></div><div class="sign">${esc(st.name)}</div>
+    <div class="window">${st.products.slice(0,3).map(thumbImg).join('')}</div>
+    <div class="counter">${n} ${plural(n,'изделие','изделия','изделий')} · смотреть →</div></a>`;
+}
+function plural(n,a,b,c){ const m=n%10,h=n%100; return m===1&&h!==11?a:(m>=2&&m<=4&&(h<12||h>14)?b:c); }
+function renderFair(){
+  $('#fairName').textContent=FAIR.name; $('#fairTag').textContent=FAIR.tagline||'';
+  const rt=$('#rentTop'); rt.textContent=FAIR.rentBanner; rt.href=FAIR.rentVk; rt.hidden=!FAIR.rentVk||FAIR.rentVk==='#';
+  $('#street').innerHTML=STALLS.map(stallHtml).join('');
+  const ph=$('#fairPhoto');
+  if(FAIR.photo){
+    ph.hidden=false;
+    ph.innerHTML=`<img src="${esc(FAIR.photo)}" alt="Торговые ряды">`+STALLS.map((st,i)=>{
+      if(st.x==null||st.y==null) return '';
+      return st.empty
+        ? `<a class="pin free" style="left:${+st.x}%;top:${+st.y}%" href="${esc(st.rentVk||FAIR.rentVk)}" target="_blank" rel="noopener">${esc(st.title||FAIR.rentTitle)}</a>`
+        : `<a class="pin" style="left:${+st.x}%;top:${+st.y}%;--c:${esc(st.color||'#b23a48')}" href="#${esc(st.id)}">${esc(st.name)}</a>`;
+    }).join('');
+  }
+}
+function showFair(){
+  closeViewer(); $('#catalog').hidden=true; $('#labels').hidden=true; $('#fair').hidden=false;
+  document.title=FAIR.name;
+}
 
 const thumbs={};
 async function renderThumbs(){
@@ -636,14 +782,14 @@ async function renderThumbs(){
   r.setPixelRatio(1); r.setSize(420,420);
   const {scene, shadow}=setupScene(r);
   const cam=new THREE.PerspectiveCamera(30,1,0.05,100); fitCamera(cam);
-  for(const p of PRODUCTS){
-    if(p.photo){ thumbs[p.id]=p.photo; }
+  for(const p of ALL){
+    if(p.photo){ thumbs[p.gid]=p.photo; }
     else{
       const m=await buildModel(p); m.rotation.y=-0.35; scene.add(m); shadow.position.y=m.userData.minY-0.01;
-      r.render(scene,cam); thumbs[p.id]=r.domElement.toDataURL('image/png');
+      r.render(scene,cam); thumbs[p.gid]=r.domElement.toDataURL('image/png');
       scene.remove(m); disposeTree(m);
     }
-    document.querySelectorAll(`[data-thumb="${CSS.escape(p.id)}"]`).forEach(img=>img.src=thumbs[p.id]);
+    document.querySelectorAll(`[data-thumb="${CSS.escape(p.gid)}"]`).forEach(img=>img.src=thumbs[p.gid]);
     await new Promise(requestAnimationFrame);
   }
   r.dispose();
@@ -653,37 +799,35 @@ async function renderThumbs(){
    QR-этикетки
    ===================================================================== */
 function renderLabels(){
-  const base=$('#baseUrl').value.trim()||location.href.split('#')[0];
+  const base=$('#baseUrl').value.trim()||pageBase();
   if(typeof qrcode!=='function'){ $('#lgrid').innerHTML='<p>Не удалось загрузить генератор QR — проверьте интернет.</p>'; return; }
-  $('#lgrid').innerHTML=PRODUCTS.map(p=>{
+  $('#lgrid').innerHTML=ALL.map(p=>{
     const q=qrcode(0,'M'); q.addData(productUrl(p, base)); q.make();
     return `<div class="label"><div class="qr">${q.createSvgTag({cellSize:4,margin:0,scalable:true})}</div>
-      <p class="ln">${esc(p.name)}</p><p class="lp">${esc(p.price||'')}</p><p class="lh">Наведите камеру — покрутите в 3D</p></div>`;
+      <p class="ln">${esc(p.name)}</p><p class="lp">${esc(p.price||'')}</p>${FAIR?`<p class="lh">${esc(p.shop.name)}</p>`:''}<p class="lh">Наведите камеру — покрутите в 3D</p></div>`;
   }).join('');
 }
 $('#baseUrl').addEventListener('input',renderLabels);
 $('#btnPrint').onclick=()=>{ try{ window.print(); }catch(e){ toast('Печать недоступна в этом окне — откройте страницу в браузере'); } };
 
 /* =====================================================================
-   НАВИГАЦИЯ по адресу: #id-товара открывает его 3D сразу (для QR и ВК)
+   НАВИГАЦИЯ:  #  — ярмарка · #мастерская · #мастерская--товар · #labels
    ===================================================================== */
-function showCatalog(){
-  closeViewer(); $('#labels').hidden=true; $('#catalog').hidden=false; document.title=SHOP.name+' — 3D-витрина';
-}
+function route0(){ FAIR ? showFair() : showCatalog(SHOPS[0]); }
 function route(){
   const h=decodeURIComponent(location.hash.slice(1));
-  if(h==='labels'){ closeViewer(); $('#catalog').hidden=true; $('#labels').hidden=false; renderLabels(); }
+  if(h==='labels'){ closeViewer(); $('#fair').hidden=true; $('#catalog').hidden=true; $('#labels').hidden=false; renderLabels(); }
   else if(byId[h]) openProduct(h);
-  else showCatalog();
+  else if(shopById[h]) showCatalog(shopById[h]);
+  else route0();
 }
-$('#shopName').textContent=SHOP.name; $('#shopTag').textContent=SHOP.tagline; $('#vkLink').href=SHOP.vk;
-$('#baseUrl').value=location.href.split('#')[0];
+$('#baseUrl').value=pageBase();
 if (cfgProblem) {
   const w=$('#cfgWarn'); w.hidden=false;
-  w.textContent='⚠ Ваши товары не загрузились — показаны демо-товары. Причина: '+cfgProblem;
+  w.textContent='⚠ Настройки не загрузились — показаны демо-товары. Причина: '+cfgProblem;
   console.warn(cfgProblem);
 }
-renderCatalog();
+if (FAIR) renderFair();
 addEventListener('hashchange',route);
 route();
 renderThumbs();
