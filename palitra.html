@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Справочник цветов для ярмарки</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f7f1e8;--paper:#fffaf3;--ink:#2b2622;--muted:#7b6f64;--line:#e8dccb;--berry:#b23a48}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 60px}
+  h1{font-family:Comfortaa,sans-serif;margin:0 0 6px;font-size:clamp(24px,5vw,34px)}
+  .lead{color:var(--muted);margin:0 0 8px;line-height:1.5}
+  h2{font-family:Comfortaa,sans-serif;font-size:21px;margin:34px 0 4px}
+  .sub{color:var(--muted);margin:0 0 14px;font-size:14px}
+  code{background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px}
+  .tip{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.55;margin:14px 0 0}
+
+  /* сочетания */
+  .combos{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .combo{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--paper)}
+  .combo .demo{padding:22px 14px 18px;text-align:center;position:relative}
+  .combo .demo b{display:block;font-family:Comfortaa,sans-serif;font-size:20px}
+  .combo .demo span{font-size:13px;opacity:.85}
+  .combo .demo i{display:block;width:80%;height:26px;margin:12px auto 0;border-radius:8px;background:#fffaf3;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  .combo .meta{padding:10px 12px 12px}
+  .combo .nm{font-weight:800;margin-bottom:6px}
+  .codes{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;width:100%}
+  .btn:active{transform:scale(.98)}
+
+  /* образцы */
+  .sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .s{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit}
+  .s .c{height:70px;display:flex;align-items:flex-end;justify-content:flex-end;padding:6px}
+  .s .c em{font-style:normal;font-size:11px;font-weight:800;background:rgba(255,255,255,.85);color:#2b2622;border-radius:6px;padding:2px 6px;opacity:0;transition:.15s}
+  .s:hover .c em{opacity:1}
+  .s .t{padding:8px 10px}
+  .s .t b{display:block;font-size:14px}
+  .s .t span{font-size:12px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+
+  /* навесы */
+  .aw{height:46px;background:repeating-linear-gradient(90deg,var(--c) 0 16px,#fff6e8 16px 32px)}
+
+  /* конструктор */
+  .builder{display:grid;grid-template-columns:1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}
+  @media(min-width:800px){.builder{grid-template-columns:320px 1fr}}
+  .field{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .field label{flex:1;font-weight:700;font-size:14px}
+  .field input[type=color]{width:54px;height:38px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:2px;cursor:pointer}
+  .field input[type=text]{width:96px;padding:8px;border:1px solid var(--line);border-radius:8px;font-family:ui-monospace,Consolas,monospace}
+  .preview{border-radius:14px;padding:24px 16px;text-align:center;min-height:240px}
+  .preview .logo{width:64px;height:64px;border-radius:50%;margin:0 auto 10px;background:radial-gradient(circle at 50% 45%,#8e2534,#3d0d14);border:3px solid #e2bc62}
+  .preview h3{font-family:Comfortaa,sans-serif;font-size:24px;margin:0 0 4px}
+  .preview p{margin:0 0 14px;opacity:.85;font-size:14px}
+  .preview .stall{width:150px;margin:0 auto;border-radius:10px 10px 6px 6px;background:linear-gradient(#a8784c,#82552f);padding-bottom:8px;overflow:hidden}
+  .preview .stall .sign{margin:8px;background:#3b2a1e;color:#ffe9c4;border-radius:6px;padding:5px;font-size:12px;font-weight:800}
+  .preview .stall .win{margin:0 8px;height:60px;border-radius:6px;background:#fffaf3}
+  pre{background:#2b2622;color:#f6e3a1;border-radius:12px;padding:12px 14px;font-size:13px;overflow:auto;margin:10px 0}
+
+  #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;transition:.25s;pointer-events:none;z-index:9}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Справочник цветов для ярмарки</h1>
+  <p class="lead">Нажмите на цвет — код скопируется. Вставьте его в настройки между кавычками, например <code>pageColor: '#3a1630',</code></p>
+  <div class="tip">
+    <b>Где какие цвета:</b><br>
+    <code>pageColor</code> — фон страницы (в <code>fair.js</code> — у ярмарки, в <code>shops/имя.js</code> — у мастерской)<br>
+    <code>pageText</code> — цвет заголовка на этом фоне. Тёмный фон → светлый текст, светлый фон → оставьте <code>''</code><br>
+    <code>color</code> — цвет полосатого навеса лавки (в файле мастерской)<br>
+    <code>colorTop</code> / <code>colorBottom</code> / <code>textColor</code> — шапка ярмарки (блок <code>header</code> в <code>fair.js</code>)
+  </div>
+
+  <h2>Готовые сочетания: фон + текст</h2>
+  <p class="sub">Кнопка копирует сразу обе строки — вставьте их в файл мастерской вместо старых pageColor и pageText.</p>
+  <div class="combos" id="combos"></div>
+
+  <h2>Светлые фоны</h2>
+  <p class="sub">Для <code>pageColor</code>. Текст оставляйте тёмным: <code>pageText: ''</code></p>
+  <div class="sw" id="light"></div>
+
+  <h2>Тёмные фоны</h2>
+  <p class="sub">Для <code>pageColor</code>. Обязательно задайте светлый <code>pageText</code> — подходящие ниже.</p>
+  <div class="sw" id="dark"></div>
+
+  <h2>Цвета текста для тёмного фона</h2>
+  <p class="sub">Для <code>pageText</code> и <code>textColor</code> в шапке.</p>
+  <div class="sw" id="text"></div>
+
+  <h2>Цвета навесов лавок</h2>
+  <p class="sub">Для строки <code>color</code> в файле мастерской — так лавки в рядах будут разными.</p>
+  <div class="sw" id="awn"></div>
+
+  <h2>Подобрать свой</h2>
+  <p class="sub">Выберите цвета — справа сразу видно, как будет выглядеть, а ниже готовые строки для файла.</p>
+  <div class="builder">
+    <div>
+      <div class="field"><label for="bBg">Фон страницы</label><input type="color" id="bBg" value="#3a1630"><input type="text" id="tBg" value="#3a1630"></div>
+      <div class="field"><label for="bTx">Текст заголовка</label><input type="color" id="bTx" value="#f6e3a1"><input type="text" id="tTx" value="#f6e3a1"></div>
+      <div class="field"><label for="bAw">Навес лавки</label><input type="color" id="bAw" value="#b23a48"><input type="text" id="tAw" value="#b23a48"></div>
+      <pre id="code"></pre>
+      <button class="btn" id="copyCode">Скопировать строки</button>
+    </div>
+    <div class="preview" id="prev">
+      <div class="logo"></div>
+      <h3>Алхимия форм</h3>
+      <p>Полимерная глина и смола ручной работы</p>
+      <div class="stall"><div class="aw" id="prevAw"></div><div class="sign">Алхимия форм</div><div class="win"></div></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const COMBOS = [
+  ['Сливовый с золотом',     '#3a1630','#f6e3a1'],
+  ['Бордо с золотом',        '#4a1220','#f6e3a1'],
+  ['Ночное небо',            '#14284a','#f5e6d3'],
+  ['Еловый лес',             '#1f3d33','#f3ead8'],
+  ['Шоколад со сливками',    '#3b2a1e','#f5e6d3'],
+  ['Графит и лаванда',       '#2a2730','#d9c6f0'],
+  ['Глубокий изумруд',       '#0f3b3a','#e8f3ef'],
+  ['Тёмная вишня',           '#5a1520','#ffd9c7'],
+  ['Кремовый (по умолчанию)','#f7f1e8',''],
+  ['Светлая лаванда',        '#efe4f3',''],
+  ['Мятный',                 '#e5f3ee',''],
+  ['Пудровый розовый',       '#f8e8ea',''],
+];
+const LIGHT = [
+  ['Кремовый','#f7f1e8'],['Слоновая кость','#fbf7ef'],['Молочный','#fffaf3'],['Ванильный','#fbf1d9'],
+  ['Песочный','#f1e3cc'],['Персиковый','#fbe6d6'],['Пудровый','#f8e8ea'],['Светло-розовый','#fbe1e6'],
+  ['Лавандовый','#efe4f3'],['Сиреневый','#e8def5'],['Голубой лёд','#e6f0f7'],['Небесный','#ddeef8'],
+  ['Мятный','#e5f3ee'],['Шалфей','#e3ebdf'],['Светло-серый','#eeeeec'],['Жемчужный','#f1efee'],
+];
+const DARK = [
+  ['Тёмно-сливовый','#3a1630'],['Бордовый','#4a1220'],['Тёмная вишня','#5a1520'],['Винный','#6b1f2f'],
+  ['Ночной синий','#14284a'],['Тёмно-синий','#1f2a44'],['Сапфир','#1d3557'],['Глубокий изумруд','#0f3b3a'],
+  ['Еловый','#1f3d33'],['Тёмно-зелёный','#2f5d50'],['Шоколад','#3b2a1e'],['Кофейный','#4a3426'],
+  ['Графит','#2a2730'],['Антрацит','#1e1e22'],['Баклажан','#3d2c4a'],['Индиго','#2b2d5c'],
+];
+const TEXT = [
+  ['Золотой','#f6e3a1'],['Бледное золото','#f3d98c'],['Сливочный','#f5e6d3'],['Белый','#ffffff'],
+  ['Молочный','#fffaf3'],['Персиковый','#ffd9c7'],['Лавандовый','#d9c6f0'],['Мятный','#c9efe0'],
+  ['Небесный','#cfe6f7'],['Розовый','#ffc9d6'],
+];
+const AWN = [
+  ['Ягодный','#b23a48'],['Красный','#c0392b'],['Бордо','#7a1f2b'],['Хвойный','#2f5d50'],
+  ['Изумрудный','#1f8a70'],['Синий','#2b5797'],['Небесный','#4a90c2'],['Фиолетовый','#7b3fa0'],
+  ['Сиреневый','#a77bca'],['Горчичный','#d4a017'],['Оранжевый','#e07a2e'],['Коричневый','#8a5d36'],
+  ['Розовый','#e07a9a'],['Бирюзовый','#2aa198'],['Графитовый','#4a4a55'],['Золотой','#c9a227'],
+];
+
+const $ = s => document.querySelector(s);
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),2200); }
+async function copy(text, msg){
+  try{ await navigator.clipboard.writeText(text); toast(msg||('Скопировано: '+text)); }
+  catch(e){ // запасной способ
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select();
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(_){}
+    ta.remove(); toast(ok ? (msg||('Скопировано: '+text)) : 'Код: '+text);
+  }
+}
+function swatch(name, hex, extra){
+  return `<button class="s" data-hex="${hex}" title="Нажмите, чтобы скопировать">
+    <div class="c" style="background:${hex}">${extra||''}<em>копировать</em></div>
+    <div class="t"><b>${name}</b><span>${hex}</span></div></button>`;
+}
+$('#combos').innerHTML = COMBOS.map(([n,bg,tx])=>`
+  <div class="combo">
+    <div class="demo" style="background:${bg};color:${tx||'#2b2622'}"><b>Алхимия форм</b><span>Полимерная глина и смола</span><i></i></div>
+    <div class="meta"><div class="nm">${n}</div>
+      <div class="codes"><span>фон <b>${bg}</b></span><span>текст <b>${tx||"'' (тёмный)"}</b></span></div>
+      <button class="btn" data-snip="  pageColor:  '${bg}',\n  pageText:   '${tx}',">Скопировать строки</button></div>
+  </div>`).join('');
+$('#light').innerHTML = LIGHT.map(([n,h])=>swatch(n,h)).join('');
+$('#dark').innerHTML  = DARK.map(([n,h])=>swatch(n,h)).join('');
+$('#text').innerHTML  = TEXT.map(([n,h])=>swatch(n,h)).join('').replace(/class="c" style="background:(#[0-9a-f]+)"/g,
+  (m,h)=>`class="c" style="background:#3a1630;color:${h};font-family:Comfortaa;font-weight:700;font-size:20px;align-items:center;justify-content:center"`)
+  .replace(/<em>копировать<\/em><\/div>/g,'Аа<em style="position:absolute;opacity:0">.</em></div>');
+$('#awn').innerHTML   = AWN.map(([n,h])=>swatch(n,h,'')).join('').replace(/class="c" style="background:(#[0-9a-f]+)"/g,(m,h)=>`class="c aw" style="--c:${h}"`);
+
+document.addEventListener('click', e=>{
+  const s=e.target.closest('.s'); if(s) return copy(s.dataset.hex);
+  const b=e.target.closest('[data-snip]'); if(b) return copy(b.dataset.snip.replace(/\\n/g,'\n'), 'Строки скопированы — вставьте в файл мастерской');
+});
+
+/* конструктор */
+const pairs=[['bBg','tBg'],['bTx','tTx'],['bAw','tAw']];
+function update(){
+  const bg=$('#bBg').value, tx=$('#bTx').value, aw=$('#bAw').value;
+  $('#prev').style.background=bg; $('#prev').style.color=tx; $('#prevAw').style.setProperty('--c',aw); $('#prevAw').className='aw';
+  $('#code').textContent=`  pageColor:  '${bg}',\n  pageText:   '${tx}',\n  color:      '${aw}',`;
+}
+pairs.forEach(([c,t])=>{
+  $('#'+c).addEventListener('input',()=>{ $('#'+t).value=$('#'+c).value; update(); });
+  $('#'+t).addEventListener('input',()=>{ const v=$('#'+t).value.trim(); if(/^#[0-9a-fA-F]{6}$/.test(v)){ $('#'+c).value=v.toLowerCase(); update(); } });
+});
+$('#copyCode').addEventListener('click',()=>copy($('#code').textContent,'Строки скопированы — вставьте в файл мастерской'));
+update();
+</script>
+</body>
+</html>
