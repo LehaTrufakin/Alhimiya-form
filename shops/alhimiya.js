@@ -60,7 +60,7 @@ fairShop('alhimiya', {
       specs:    ['Эпоксидная смола', 'Ручная работа'],
       desc:     'Ёлочные игрушки по мотивам «Гарри Поттера», полностью ручная работа.',
       model:    'garri.glb',
-      photos:   [],                       // фото: ['garri-1.jpg', 'garri-2.jpg']
+      photos:   [gari.jpg],                       // фото: ['garri-1.jpg', 'garri-2.jpg']
     },
 
   ],
