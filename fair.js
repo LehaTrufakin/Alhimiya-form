@@ -24,7 +24,7 @@ window.FAIR_CONFIG = {
       snow:        true,        // false — убрать снежинки
       colorTop:    '#14284a',   // цвета шапки без картинки: сверху…
       colorBottom: '#2f5d50',   // …и снизу
-      textColor:   '#ffffff',   // цвет заголовка
+      textColor:   '#F5E6D3',   // цвет заголовка
     },
   
   },
