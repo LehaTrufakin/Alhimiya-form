@@ -20,7 +20,7 @@ window.FAIR_CONFIG = {
     pageText:      '',                 // цвет текста на фоне ('' — тёмный по умолчанию)
     shopPageColor: '',                 // цвет фона страниц мастерских по умолчанию
     background:    '',                 // фото фоном всей страницы, например 'design/test2.jpg'
-    backgroundDim: 0.25,               // затемнение фона: 0 … 0.6
+    backgroundDim: 0.5,               // затемнение фона: 0 … 0.6
 
     header: {
       image:       'design/test.jpg',  // своя картинка для шапки
