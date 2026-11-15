@@ -55,7 +55,17 @@
   .stage-wrap{position:relative;flex:1 1 58%;min-height:300px;
     background:radial-gradient(ellipse at 50% 45%,#fffdf9 0,#f3e9db 60%,#eadcc8 100%)}
   #stage{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
-  .icon{position:absolute;top:calc(12px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.08);font-size:20px;display:grid;place-items:center;color:var(--ink);text-decoration:none}
+  .strip{position:absolute;top:calc(12px + env(safe-area-inset-top));left:66px;right:12px;display:flex;gap:6px;overflow-x:auto;z-index:4;scrollbar-width:none;padding:2px}
+  .strip::-webkit-scrollbar{display:none}
+  .mi{flex:none;width:48px;height:48px;border-radius:12px;border:2px solid #fff;background:#fff;padding:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer}
+  .mi img{width:100%;height:100%;object-fit:cover;display:block}
+  .mi.on{border-color:var(--berry);box-shadow:0 0 0 2px var(--berry)}
+  .mi3d{font-weight:800;font-size:14px;color:var(--pine)}
+  .photo-view{position:absolute;inset:0;z-index:3;background:radial-gradient(ellipse at 50% 45%,#fffdf9 0,#f3e9db 60%,#eadcc8 100%)}
+  .photo-view img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:72px 12px 16px;box-sizing:border-box;user-select:none;-webkit-user-drag:none}
+  .ph-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.12);font-size:26px;line-height:1;color:var(--ink);z-index:4}
+  #phPrev{left:12px} #phNext{right:12px}
+  .icon{z-index:5;position:absolute;top:calc(12px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.08);font-size:20px;display:grid;place-items:center;color:var(--ink);text-decoration:none}
   .back{left:12px}
   .hint{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);background:rgba(43,38,34,.78);color:#fff;font-size:13px;padding:7px 14px;border-radius:99px;white-space:nowrap;transition:opacity .5s;pointer-events:none}
   .hint.off{opacity:0}
@@ -207,8 +217,14 @@
 <section class="viewer" id="viewer" hidden>
   <div class="stage-wrap" id="stageWrap">
     <canvas id="stage"></canvas>
+    <div class="photo-view" id="photoView" hidden>
+      <img id="photoImg" alt="">
+      <button class="ph-nav" id="phPrev" aria-label="Предыдущее фото">‹</button>
+      <button class="ph-nav" id="phNext" aria-label="Следующее фото">›</button>
+    </div>
+    <div class="strip" id="strip" hidden></div>
     <div class="loader" id="loader">Загружаем 3D-модель…</div>
-    <div id="modelNote" hidden style="position:absolute;left:12px;right:12px;top:calc(64px + env(safe-area-inset-top));background:#b23a48;color:#fff;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:700;text-align:center"></div>
+    <div id="modelNote" hidden style="position:absolute;left:12px;right:12px;top:calc(72px + env(safe-area-inset-top));z-index:4;background:#b23a48;color:#fff;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:700;text-align:center"></div>
     <button class="icon back" id="btnBack" aria-label="Назад к каталогу">←</button>
     <div class="hint" id="hint">Крутите пальцем · щипок — приблизить</div>
     <div class="tools">
@@ -396,7 +412,11 @@ function normP(p){
   p.specs ??= p['характеристики'] ?? p['спецификация'] ?? p['спецификации'];
   p.id ??= p['идентификатор'] ?? p['идентификационный номер'] ?? p['ид'];
   p.id = String(p.id ?? '');
+  p.photos ??= p['фото'] ?? p['фотографии'];
+  if (typeof p.photos === 'string') p.photos = [p.photos];
+  p.photos = (p.photos || []).filter(Boolean);
 }
+const has3D = p => !!(p.model || p.shape);
 const FAIR_CFG = window.FAIR_CONFIG || null;
 const FAIR = FAIR_CFG ? Object.assign({
     name:'Ярмарка мастеров', tagline:'', rentVk:'#', rentTitle:'Сдаётся',
@@ -413,8 +433,8 @@ SHOPS.forEach((sh,i) => {
   sh.products = sh.products || [];
   sh.products.forEach((p,k) => {
     normP(p); if(!p.id) p.id='item-'+(k+1);
-    if (sh.__file) for (const key of ['model','usdz','photo'])        // модели мастерской лежат в models/<id>/
-      if (p[key] && !/[\/:]/.test(p[key])) p[key] = `models/${sh.id}/${p[key]}`;
+    const inShop = f => (f && !/[\/:]/.test(f)) ? `models/${sh.id}/${f}` : f;   // файлы мастерской лежат в models/<id>/
+    if (sh.__file) { for (const key of ['model','usdz','photo']) p[key] = inShop(p[key]); p.photos = p.photos.map(inShop); }
     p.shop = sh; p.gid = FAIR ? sh.id+'--'+p.id : p.id;
     ALL.push(p);
   });
@@ -617,7 +637,7 @@ async function loadSTL(p){
   if(p.zUp!==false) mesh.rotation.x=-Math.PI/2;
   return mesh;
 }
-async function buildModel(p){
+async function buildModel(p, quiet=false){
   if(p.model){
     try{
       if(isSTL(p.model)) return normalize(await loadSTL(p));
@@ -626,13 +646,13 @@ async function buildModel(p){
     catch(e){
       console.warn('Не удалось загрузить', p.model, e);
       const why = /404|Not Found/i.test(String(e?.message||e)) ? 'файл не найден — проверьте имя и регистр букв' : 'файл повреждён или слишком тяжёлый';
-      modelNote(`Не удалось открыть «${p.model}»: ${why}. Показан образец.`);
+      if(!quiet) modelNote(`Не удалось открыть «${p.model}»: ${why}. Показан образец.`);
     }
-  } else if (!p.shape) modelNote('У этого товара в products.js не указана строка model — показан образец.');
+  } else if (!p.shape && !quiet) modelNote('У этого товара в products.js не указана строка model — показан образец.');
   const b=BUILDERS[p.shape?.type] || BUILDERS.ornament;
   return normalize(b(p.shape||{color:'#ccc'}, hashSeed(p.id)));
 }
-function modelNote(t){ const n=document.getElementById('modelNote'); if(n){ n.textContent='⚠ '+t; n.hidden=false; } }
+function modelNote(t){ V.noteText=t; const n=document.getElementById('modelNote'); if(n){ n.textContent='⚠ '+t; n.hidden=V.media!=='3d'; } }
 function disposeTree(o){
   o.traverse(m=>{ if(m.geometry) m.geometry.dispose();
     const mats=Array.isArray(m.material)?m.material:(m.material?[m.material]:[]);
@@ -708,11 +728,22 @@ async function openProduct(gid){
   $('#btnOrder').textContent = FAIR ? `Заказать у «${p.shop.name}»` : 'Заказать во ВКонтакте';
   const many = V.list.length>1; $('#btnPrev').style.visibility=$('#btnNext').style.visibility = many?'':'hidden';
   setupAR(p);
+  // лента: 3D + фото
+  const photos=p.photos||[], is3D=has3D(p);
+  $('#strip').innerHTML = photos.length
+    ? (is3D?'<button class="mi mi3d" data-m="3d">3D</button>':'') + photos.map((u,i)=>`<button class="mi" data-m="${i}"><img src="${esc(u)}" alt="Фото ${i+1}" loading="lazy"></button>`).join('')
+    : '';
+  $('#strip').hidden = !photos.length;
+  setMedia(is3D ? '3d' : (photos.length ? 0 : '3d'));
   if(!V.ready) initViewer();
   resizeViewer(); resetView();
   if(!V.running){ V.running=true; loop(); }
   $('#hint').classList.remove('off'); setTimeout(()=>$('#hint').classList.add('off'),5000);
-  const tok=++V.token; $('#loader').hidden=false; $('#modelNote').hidden=true;
+  const tok=++V.token; $('#loader').hidden=false; $('#modelNote').hidden=true; V.noteText='';
+  if(!is3D && photos.length){                       // только фото, без 3D
+    if(V.model){ V.scene.remove(V.model); disposeTree(V.model); V.model=null; }
+    $('#loader').hidden=true; return;
+  }
   const m=await buildModel(p);
   if(tok!==V.token){ disposeTree(m); return; }
   if(V.model){ V.scene.remove(V.model); disposeTree(V.model); }
@@ -732,6 +763,26 @@ function setupAR(p){
     a.hidden=false;
   }
 }
+
+/* Переключение 3D / фото */
+function setMedia(m){
+  V.media=m;
+  document.querySelectorAll('#strip .mi').forEach(b=>b.classList.toggle('on', b.dataset.m===String(m)));
+  const pv=$('#photoView'), tools=document.querySelector('.tools');
+  $('#modelNote').hidden = m!=='3d' || !V.noteText;
+  if(m==='3d'){ pv.hidden=true; tools.hidden=false; return; }
+  const ph=V.p.photos; pv.hidden=false; tools.hidden=true; $('#hint').classList.add('off');
+  $('#photoImg').src=ph[m]; $('#phPrev').hidden=$('#phNext').hidden=ph.length<2;
+  const btn=document.querySelector(`#strip .mi[data-m="${m}"]`); btn?.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+function stepPhoto(d){ if(V.media==='3d') return; const n=V.p.photos.length; setMedia((V.media+d+n)%n); }
+$('#strip').addEventListener('click',e=>{ const b=e.target.closest('.mi'); if(!b) return; setMedia(b.dataset.m==='3d'?'3d':+b.dataset.m); });
+$('#phPrev').onclick=()=>stepPhoto(-1); $('#phNext').onclick=()=>stepPhoto(1);
+(()=>{ let x0=null; const pv=$('#photoView');
+  pv.addEventListener('touchstart',e=>{ x0=e.touches[0].clientX; },{passive:true});
+  pv.addEventListener('touchend',e=>{ if(x0==null) return; const dx=e.changedTouches[0].clientX-x0; if(Math.abs(dx)>40) stepPhoto(dx<0?1:-1); x0=null; });
+  addEventListener('keydown',e=>{ if($('#viewer').hidden) return; if(e.key==='ArrowRight') stepPhoto(1); if(e.key==='ArrowLeft') stepPhoto(-1); });
+})();
 
 /* Кнопки просмотра */
 $('#btnBack').onclick=()=>{ location.hash = (FAIR && V.p) ? V.p.shop.id : ''; };
@@ -764,7 +815,7 @@ function renderCatalog(){
   $('#cats').innerHTML = cats.length>2 ? cats.map(c=>`<button class="chip${c===activeCat?' on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('') : '';
   $('#grid').innerHTML=list.filter(p=>activeCat==='Все'||p.category===activeCat).map(p=>`
     <a class="card" href="#${esc(p.gid)}">
-      <div class="thumb">${thumbImg(p)}<span class="t3d">3D</span></div>
+      <div class="thumb">${thumbImg(p)}<span class="t3d">${has3D(p)?'3D':'Фото'}</span></div>
       <div class="info"><p class="name">${esc(p.name)}</p><p class="meta">${esc((p.specs||[])[0]||p.category||'')}</p><div class="price">${esc(p.price||'')}</div></div>
     </a>`).join('') || '<p style="grid-column:1/-1;text-align:center;color:var(--muted)">Товары скоро появятся</p>';
 }
@@ -867,9 +918,9 @@ async function renderThumbs(){
   const {scene, shadow}=setupScene(r);
   const cam=new THREE.PerspectiveCamera(30,1,0.05,100); fitCamera(cam);
   for(const p of ALL){
-    if(p.photo){ thumbs[p.gid]=p.photo; }
+    if(p.photo || (!has3D(p) && p.photos.length)){ thumbs[p.gid]=p.photo || p.photos[0]; }
     else{
-      const m=await buildModel(p); m.rotation.y=-0.35; scene.add(m); shadow.position.y=m.userData.minY-0.01;
+      const m=await buildModel(p, true); m.rotation.y=-0.35; scene.add(m); shadow.position.y=m.userData.minY-0.01;
       r.render(scene,cam); thumbs[p.gid]=r.domElement.toDataURL('image/png');
       scene.remove(m); disposeTree(m);
     }
