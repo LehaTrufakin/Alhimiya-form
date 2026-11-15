@@ -18,7 +18,7 @@ window.FAIR_CONFIG = {
     rentBanner:    'Хотите своё место на ярмарке? Условия аренды →',
     shopPageColor: '',
     background:    '',
-    backgroundDim: 0.1,
+    backgroundDim: 0.7,
     header:        {
       image:       'design/test.jpg',
       fit:         'cover',
