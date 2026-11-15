@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Админка ярмарки</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f4efe7;--paper:#fffdf9;--ink:#2b2622;--muted:#7b6f64;--line:#e5d9c8;--berry:#b23a48;--berry-d:#8f2a37;--pine:#2f5d50;--warn:#fff3cd}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;font-size:15px}
+  h1,h2,h3{font-family:Comfortaa,sans-serif;margin:0}
+  button{font:inherit;cursor:pointer}
+  input,select,textarea{font:inherit;color:inherit}
+  [hidden]{display:none!important}
+  a{color:var(--pine)}
+
+  /* вход */
+  .login{max-width:560px;margin:40px auto;padding:0 16px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .login h1{font-size:26px;margin-bottom:6px}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+  label.f{display:block;margin:12px 0 4px;font-weight:700;font-size:14px}
+  .inp{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  textarea.inp{min-height:90px;resize:vertical}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>*{flex:1 1 160px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;font-weight:800}
+  .btn.primary{background:var(--berry);border-color:var(--berry);color:#fff}
+  .btn.primary:hover{background:var(--berry-d)}
+  .btn.ghost{background:transparent}
+  .btn.danger{color:var(--berry);border-color:#f0c9cf}
+  .btn.sm{padding:6px 10px;font-size:13px;border-radius:9px}
+  .btn:disabled{opacity:.5;cursor:default}
+  details.help{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+  details.help summary{font-weight:800;cursor:pointer}
+  details.help ol{padding-left:20px;line-height:1.6;margin:8px 0 0}
+  .err{background:#fde8eb;color:var(--berry-d);border-radius:10px;padding:10px 12px;margin-top:12px;font-weight:700}
+  .ok{background:#e4f3ec;color:#1d5a44;border-radius:10px;padding:10px 12px;font-weight:700}
+
+  /* рабочая область */
+  .top{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .top h1{font-size:18px;flex:1}
+  .layout{display:grid;grid-template-columns:260px 1fr;gap:16px;max-width:1200px;margin:0 auto;padding:16px 16px 120px}
+  @media(max-width:820px){.layout{grid-template-columns:1fr}}
+  .nav{display:flex;flex-direction:column;gap:6px;align-self:start;position:sticky;top:70px}
+  @media(max-width:820px){.nav{position:static}}
+  .nav button{text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:10px 12px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .nav button.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+  .nav .dot{width:12px;height:12px;border-radius:50%;flex:none}
+  .nav .sep{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:10px 4px 2px}
+  .pane h2{font-size:22px;margin-bottom:4px}
+  .sect{margin-top:16px}
+  .sect h3{font-size:16px;margin-bottom:8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  @media(max-width:600px){.grid2{grid-template-columns:1fr}}
+  .color{display:flex;gap:8px;align-items:center}
+  .color input[type=color]{width:46px;height:40px;border:1px solid var(--line);border-radius:10px;padding:2px;background:#fff}
+  .color .inp{flex:1}
+  .chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:600}
+  .file{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .file img{width:64px;height:64px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#fff}
+  .file .nm{font-size:13px;color:var(--muted);word-break:break-all}
+  .stalls{display:flex;flex-direction:column;gap:6px}
+  .stall-row{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+  .stall-row .t{flex:1;font-weight:700}
+  .stall-row .t small{font-weight:400;color:var(--muted)}
+  .prods{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+  .prod{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .prod .ph{aspect-ratio:4/3;background:#f5ede2;display:grid;place-items:center;color:var(--muted);font-weight:800;position:relative}
+  .prod .ph img{width:100%;height:100%;object-fit:cover}
+  .prod .ph .b{position:absolute;right:6px;top:6px;background:#fff;border-radius:99px;padding:2px 8px;font-size:11px;font-weight:800;color:var(--pine)}
+  .prod .in{padding:10px 12px;flex:1}
+  .prod .in b{display:block}
+  .prod .acts{display:flex;gap:6px;padding:0 10px 10px;flex-wrap:wrap}
+  .badge-new{display:inline-block;background:var(--warn);border-radius:6px;padding:0 6px;font-size:11px;font-weight:800;margin-left:6px}
+
+  /* окно товара */
+  .modal{position:fixed;inset:0;background:rgba(30,20,10,.45);z-index:20;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 12px}
+  .modal .card{width:100%;max-width:720px}
+  .photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .photos .p{position:relative;width:88px;height:88px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff}
+  .photos .p img{width:100%;height:100%;object-fit:cover}
+  .photos .p button{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:14px;line-height:1}
+  .photos .p .mv{position:absolute;bottom:3px;left:3px;display:flex;gap:2px}
+  .photos .p .mv button{position:static;width:22px;height:22px;font-size:12px}
+  .warnbox{background:var(--warn);border-radius:10px;padding:8px 10px;font-size:13px;margin-top:6px}
+
+  /* панель сохранения */
+  .savebar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--ink);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 -6px 20px rgba(0,0,0,.15)}
+  .savebar .msg{flex:1;min-width:200px}
+  .savebar .btn{border:none}
+  .progress{font-size:13px;opacity:.85}
+  #toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:30;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<!-- ============ ВХОД ============ -->
+<div class="login" id="login">
+  <div class="card">
+    <h1>Админка ярмарки</h1>
+    <p class="muted">Здесь можно менять мастерские, товары, фото и модели — всё сохраняется прямо на сайт.</p>
+    <div class="row">
+      <div><label class="f" for="owner">Владелец на GitHub</label><input class="inp" id="owner" placeholder="LehaTrufakin"></div>
+      <div><label class="f" for="repo">Репозиторий</label><input class="inp" id="repo" placeholder="Alhimiya-form"></div>
+    </div>
+    <label class="f" for="token">Ключ доступа GitHub</label>
+    <input class="inp" id="token" type="password" placeholder="github_pat_…" autocomplete="off">
+    <label class="chk"><input type="checkbox" id="remember" checked> Запомнить на этом устройстве</label>
+    <div style="margin-top:14px"><button class="btn primary" id="btnLogin">Войти</button></div>
+    <div class="err" id="loginErr" hidden></div>
+    <details class="help">
+      <summary>Как получить ключ (один раз, 3 минуты)</summary>
+      <ol>
+        <li>Откройте <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> (войдите в GitHub).</li>
+        <li><b>Token name</b>: например «админка ярмарки». <b>Expiration</b>: срок действия — можно 1 год.</li>
+        <li><b>Repository access</b> → <b>Only select repositories</b> → выберите <b>Alhimiya-form</b>.</li>
+        <li><b>Permissions</b> → <b>Repository permissions</b> → <b>Contents</b> → <b>Read and write</b>.</li>
+        <li>Внизу <b>Generate token</b> и скопируйте ключ (начинается с <code>github_pat_</code>) — GitHub покажет его только один раз.</li>
+        <li>Вставьте ключ сюда. Он хранится только в этом браузере и даёт доступ только к этому репозиторию.</li>
+      </ol>
+      <p class="small muted">Никому не передавайте ключ. Если потеряли телефон или ноутбук — удалите ключ на той же странице GitHub и создайте новый.</p>
+    </details>
+  </div>
+</div>
+
+<!-- ============ РАБОЧАЯ ОБЛАСТЬ ============ -->
+<div id="app" hidden>
+  <div class="top">
+    <h1>Админка: <span id="siteName"></span></h1>
+    <a class="btn sm" id="siteLink" target="_blank" rel="noopener">Открыть сайт ↗</a>
+    <button class="btn sm ghost" id="btnLogout">Выйти</button>
+  </div>
+  <div class="layout">
+    <nav class="nav" id="nav"></nav>
+    <main class="pane" id="pane"></main>
+  </div>
+  <div class="savebar" id="savebar" hidden>
+    <div class="msg"><b>Есть несохранённые изменения</b><div class="progress" id="progress"></div></div>
+    <button class="btn" id="btnDiscard" style="background:#4a423b;color:#fff">Отменить всё</button>
+    <button class="btn primary" id="btnSave">Сохранить на сайт</button>
+  </div>
+</div>
+
+<!-- ============ ОКНО ТОВАРА ============ -->
+<div class="modal" id="modal" hidden>
+  <div class="card" id="modalBody"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   НАСТРОЙКИ И СОСТОЯНИЕ
+   ===================================================================== */
+const API = 'https://api.github.com';
+const S = {
+  owner:'', repo:'', token:'', branch:'main',
+  files:new Set(),          // все пути файлов в репозитории
+  orig:{},                  // исходный текст файлов настроек (путь -> текст)
+  base:{}, forceFair:false, // как выглядели бы файлы без правок (для поиска изменений)
+  fair:null,                // объект window.FAIR_CONFIG.fair
+  stalls:[],                // [{kind:'shop', id} | {kind:'empty', data}]
+  shops:{},                 // id -> данные мастерской
+  pending:new Map(),        // путь -> File (новые файлы для загрузки)
+  deletes:new Set(),        // пути файлов для удаления
+  view:{type:'fair'},       // что открыто справа
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),2800); }
+const fmtMB = b => (b/1048576).toFixed(1).replace('.', ',') + ' МБ';
+
+/* транслит для имён файлов и id */
+const TR = {а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
+function slug(s){
+  return String(s).toLowerCase().split('').map(c => TR[c] ?? c).join('')
+    .replace(/[^a-z0-9.]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,60) || 'file';
+}
+function safeFileName(name, used){
+  const dot = name.lastIndexOf('.');
+  const base = slug(dot>0 ? name.slice(0,dot) : name).replace(/\./g,'-');
+  const ext = dot>0 ? name.slice(dot+1).toLowerCase().replace(/[^a-z0-9]/g,'') : '';
+  let n = base + (ext ? '.'+ext : ''), i = 2;
+  while (used(n)) n = `${base}-${i++}` + (ext ? '.'+ext : '');
+  return n;
+}
+
+/* =====================================================================
+   GITHUB API
+   ===================================================================== */
+async function gh(path, opts={}){
+  const r = await fetch(API + path, { ...opts, headers:{
+    'Authorization':'Bearer ' + S.token, 'Accept':'application/vnd.github+json',
+    'X-GitHub-Api-Version':'2022-11-28', ...(opts.body ? {'Content-Type':'application/json'} : {}), ...(opts.headers||{}) } });
+  if (!r.ok) {
+    let msg = r.status + ' ' + r.statusText;
+    try { const j = await r.json(); if (j.message) msg = j.message; } catch(e){}
+    const e = new Error(msg); e.status = r.status; throw e;
+  }
+  return r.status === 204 ? null : r.json();
+}
+async function readText(path){
+  const r = await fetch(`${API}/repos/${S.owner}/${S.repo}/contents/${encodeURI(path)}?ref=${encodeURIComponent(S.branch)}`, { headers:{
+    'Authorization':'Bearer ' + S.token, 'Accept':'application/vnd.github.raw+json', 'X-GitHub-Api-Version':'2022-11-28' }});
+  if (!r.ok) throw new Error(`Не удалось прочитать ${path}: ${r.status}`);
+  return r.text();
+}
+const rawUrl = path => `https://raw.githubusercontent.com/${S.owner}/${S.repo}/${encodeURIComponent(S.branch)}/${path.split('/').map(encodeURIComponent).join('/')}`;
+function fileToBase64(file){
+  return new Promise((res, rej) => { const fr = new FileReader();
+    fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = () => rej(fr.error); fr.readAsDataURL(file); });
+}
+function utf8b64(t){ const b=new TextEncoder().encode(t); let s=''; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); }
+
+/* =====================================================================
+   ВХОД И ЗАГРУЗКА ДАННЫХ
+   ===================================================================== */
+(function prefill(){
+  let o='', r='';
+  if (location.hostname.endsWith('.github.io')) { o = location.hostname.split('.')[0]; r = location.pathname.split('/').filter(Boolean)[0] || ''; }
+  try { const saved = JSON.parse(localStorage.getItem('fairAdmin')||'null');
+    if (saved) { o = saved.owner||o; r = saved.repo||r; $('#token').value = saved.token||''; } } catch(e){}
+  $('#owner').value = o; $('#repo').value = r;
+})();
+
+$('#btnLogin').onclick = async () => {
+  S.owner = $('#owner').value.trim(); S.repo = $('#repo').value.trim(); S.token = $('#token').value.trim();
+  const err = $('#loginErr'); err.hidden = true;
+  if (!S.owner || !S.repo || !S.token) { err.textContent = 'Заполните все три поля.'; err.hidden = false; return; }
+  $('#btnLogin').disabled = true; $('#btnLogin').textContent = 'Загружаю…';
+  try {
+    await loadAll();
+    try { if ($('#remember').checked) localStorage.setItem('fairAdmin', JSON.stringify({owner:S.owner, repo:S.repo, token:S.token}));
+          else localStorage.removeItem('fairAdmin'); } catch(e){}
+    $('#login').hidden = true; $('#app').hidden = false; render();
+  } catch(e) {
+    err.textContent = e.status === 401 ? 'Ключ не подошёл (истёк или скопирован не полностью).'
+      : e.status === 404 ? 'Репозиторий не найден или у ключа нет к нему доступа. Проверьте владельца, название и что в ключе выбран этот репозиторий.'
+      : e.status === 403 ? 'У ключа нет прав на запись. В настройках ключа: Contents → Read and write.'
+      : 'Ошибка: ' + e.message;
+    err.hidden = false;
+  } finally { $('#btnLogin').disabled = false; $('#btnLogin').textContent = 'Войти'; }
+};
+$('#btnLogout').onclick = () => {
+  if (hasChanges() && !confirmLeave()) return;
+  try { localStorage.removeItem('fairAdmin'); } catch(e){}
+  location.reload();
+};
+function confirmLeave(){ return window.confirm('Есть несохранённые изменения. Выйти без сохранения?'); }
+
+function evalConfig(code, file){
+  const win = {}, shops = {};
+  try { new Function('window', 'fairShop', code)(win, (id, d) => { shops[id] = d || {}; }); }
+  catch(e) {
+    throw new Error(`В файле ${file} ошибка: ${e.message}. ` + (/окно|ярмарка|магазин/.test(code) ? 'Похоже, файл сохранили с включённым переводом страницы.' : ''));
+  }
+  return { win, shops };
+}
+
+async function loadAll(){
+  const info = await gh(`/repos/${S.owner}/${S.repo}`);
+  S.branch = info.default_branch || 'main';
+  if (info.permissions && info.permissions.push === false) { const e = new Error('no push'); e.status = 403; throw e; }
+  const ref = await gh(`/repos/${S.owner}/${S.repo}/git/ref/heads/${encodeURIComponent(S.branch)}`);
+  const commit = await gh(`/repos/${S.owner}/${S.repo}/git/commits/${ref.object.sha}`);
+  const tree = await gh(`/repos/${S.owner}/${S.repo}/git/trees/${commit.tree.sha}?recursive=1`);
+  S.files = new Set(tree.tree.filter(t => t.type === 'blob').map(t => t.path));
+  if (!S.files.has('fair.js')) throw new Error('В репозитории нет файла fair.js — сначала загрузите ярмарку из архива.');
+  S.orig = {};
+  const fairCode = await readText('fair.js'); S.orig['fair.js'] = fairCode;
+  const cfg = evalConfig(fairCode, 'fair.js').win.FAIR_CONFIG;
+  if (!cfg || !cfg.fair) throw new Error('В fair.js не найден блок fair — файл повреждён.');
+  S.fair = cfg.fair;
+  S.stalls = []; S.shops = {};
+  for (const st of (cfg.shops || [])) {
+    if (typeof st === 'string') {
+      const path = `shops/${st}.js`;
+      if (!S.files.has(path)) { S.stalls.push({kind:'missing', id:st}); continue; }
+      const code = await readText(path); S.orig[path] = code;
+      const d = evalConfig(code, path).shops[st];
+      if (!d) throw new Error(`В ${path} нет строки fairShop('${st}', …)`);
+      S.shops[st] = normShop(d); S.stalls.push({kind:'shop', id:st});
+    } else if (st && st.empty) {
+      S.stalls.push({kind:'empty', data:st});
+    } else if (st && typeof st === 'object') {
+      // мастерская, записанная прямо в fair.js (старый формат) — переносим в shops/<id>.js
+      const id = slug(st.id || st.name || 'shop');
+      const d = normShop({...st});
+      d.products.forEach(p => { for (const k of ['model','usdz','photo']) if (p[k] && !/[\/:]/.test(p[k])) p[k] = './' + p[k];
+                                p.photos = (p.photos||[]).map(f => /[\/:]/.test(f) ? f : './' + f); });
+      if (d.logo && !/[\/:]/.test(d.logo)) d.logo = './' + d.logo;
+      delete d.id; S.shops[id] = d; S.stalls.push({kind:'shop', id, migrated:true});
+    }
+  }
+  S.pending.clear(); S.deletes.clear();
+  S.view = {type:'fair'};
+  snapshotBase();
+}
+function normShop(d){
+  d.products = (d.products || []).map(p => ({...p, photos: typeof p.photos === 'string' ? [p.photos] : (p.photos || [])}));
+  return d;
+}
+
+/* =====================================================================
+   ГЕНЕРАЦИЯ ФАЙЛОВ НАСТРОЕК
+   ===================================================================== */
+const q = s => "'" + String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,'\\n') + "'";
+const isIdent = k => /^[A-Za-z_$][\w$]*$/.test(k);
+function lit(v, ind='', order=[]){
+  if (v === null || v === undefined) return "''";
+  if (typeof v === 'string') return q(v);
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (Array.isArray(v)) {
+    if (!v.length) return '[]';
+    if (v.every(x => typeof x !== 'object' || x === null)) return '[' + v.map(x => lit(x)).join(', ') + ']';
+    return '[\n' + v.map(x => ind + '  ' + lit(x, ind + '  ', order)).join(',\n\n') + ',\n' + ind + ']';
+  }
+  const keys = Object.keys(v).filter(k => v[k] !== undefined && !k.startsWith('__'))
+    .sort((a,b) => { const ia = order.indexOf(a), ib = order.indexOf(b); return (ia<0?99:ia) - (ib<0?99:ib); });
+  if (!keys.length) return '{}';
+  const pad = Math.max(...keys.map(k => (isIdent(k) ? k : q(k)).length));
+  return '{\n' + keys.map(k => { const kk = isIdent(k) ? k : q(k);
+    return ind + '  ' + kk + ': ' + ' '.repeat(pad - kk.length) + lit(v[k], ind + '  ', order); }).join(',\n') + ',\n' + ind + '}';
+}
+const ORDER = ['id','name','category','price','specs','desc','model','usdz','photos','photo','shape',
+               'tagline','vk','vkMessages','logo','logoBg','pageColor','pageText','color','products',
+               'rentVk','rentTitle','rentText','rentBanner','shopPageColor','background','backgroundDim','photo','header',
+               'image','fit','showTitle','garland','snow','colorTop','colorBottom','textColor'];
+
+function shopFileText(id, d){
+  const clean = {...d, products: d.products.map(p => { const o = {...p}; if (!o.photos || !o.photos.length) delete o.photos; return o; })};
+  return `/* ================================================================
+   МАСТЕРСКАЯ «${(d.name||id).replace(/\*\//g,'')}»
+   Файлы мастерской (модели, фото, логотип) — в папке models/${id}/
+   Этот файл можно менять в админке (admin.html) или вручную.
+   ================================================================ */
+
+fairShop(${q(id)}, ${lit(clean, '', ORDER)});
+`;
+}
+function fairFileText(){
+  const shops = S.stalls.map(s => {
+    if (s.kind !== 'empty') return q(s.id);
+    const keys = Object.keys(s.data).filter(k => s.data[k] !== undefined && s.data[k] !== '');
+    return keys.length === 1 ? '{ empty: true }' : lit(s.data, '    ');
+  });
+  return `/* ================================================================
+   НАСТРОЙКИ ЯРМАРКИ: название, шапка, фон и порядок торговых мест.
+   Мастерские — в папке shops/, их файлы — в папке models/,
+   картинки оформления — в папке design/.
+   Этот файл можно менять в админке (admin.html) или вручную.
+   ================================================================ */
+
+window.FAIR_CONFIG = {
+
+  fair: ${lit(S.fair, '  ', ORDER)},
+
+  shops: [
+    ${shops.join(',\n    ')},
+  ],
+};
+`;
+}
+function changedFiles(){
+  const out = {};
+  const ft = fairFileText(); if (ft !== S.base['fair.js'] || S.forceFair) out['fair.js'] = ft;
+  for (const s of S.stalls) if (s.kind === 'shop') {
+    const path = `shops/${s.id}.js`, t = shopFileText(s.id, S.shops[s.id]);
+    if (t !== S.base[path]) out[path] = t;
+  }
+  return out;
+}
+function snapshotBase(){
+  S.base = { 'fair.js': fairFileText() };
+  for (const s of S.stalls) if (s.kind === 'shop' && !s.migrated) S.base[`shops/${s.id}.js`] = shopFileText(s.id, S.shops[s.id]);
+  S.forceFair = S.stalls.some(s => s.migrated);
+}
+function hasChanges(){ return S.pending.size || S.deletes.size || Object.keys(changedFiles()).length; }
+
+/* =====================================================================
+   СОХРАНЕНИЕ: один коммит через Git Data API
+   ===================================================================== */
+async function saveAll(){
+  const prog = $('#progress'), btn = $('#btnSave');
+  btn.disabled = true; $('#btnDiscard').disabled = true;
+  try {
+    const R = `/repos/${S.owner}/${S.repo}`;
+    prog.textContent = 'Готовлю…';
+    const ref = await gh(`${R}/git/ref/heads/${encodeURIComponent(S.branch)}`);
+    const base = await gh(`${R}/git/commits/${ref.object.sha}`);
+    const entries = [];
+    let i = 0; const total = S.pending.size;
+    for (const [path, file] of S.pending) {
+      i++; prog.textContent = `Загружаю ${i} из ${total}: ${path.split('/').pop()} (${fmtMB(file.size)})…`;
+      const blob = await gh(`${R}/git/blobs`, { method:'POST', body: JSON.stringify({ content: await fileToBase64(file), encoding:'base64' }) });
+      entries.push({ path, mode:'100644', type:'blob', sha: blob.sha });
+    }
+    const texts = changedFiles();
+    for (const [path, text] of Object.entries(texts)) {
+      prog.textContent = `Записываю ${path}…`;
+      const blob = await gh(`${R}/git/blobs`, { method:'POST', body: JSON.stringify({ content: utf8b64(text), encoding:'base64' }) });
+      entries.push({ path, mode:'100644', type:'blob', sha: blob.sha });
+    }
+    for (const path of S.deletes) if (S.files.has(path) && !S.pending.has(path) && !(path in texts))
+      entries.push({ path, mode:'100644', type:'blob', sha: null });
+    if (!entries.length) { toast('Нечего сохранять'); return; }
+    prog.textContent = 'Создаю коммит…';
+    const tree = await gh(`${R}/git/trees`, { method:'POST', body: JSON.stringify({ base_tree: base.tree.sha, tree: entries }) });
+    const commit = await gh(`${R}/git/commits`, { method:'POST', body: JSON.stringify({
+      message: 'Обновление через админку: ' + summary(), tree: tree.sha, parents: [ref.object.sha] }) });
+    await gh(`${R}/git/refs/heads/${encodeURIComponent(S.branch)}`, { method:'PATCH', body: JSON.stringify({ sha: commit.sha }) });
+    // успех: фиксируем новое состояние
+    for (const e of entries) { if (e.sha) S.files.add(e.path); else S.files.delete(e.path); }
+    Object.assign(S.orig, texts);
+    for (const s of S.stalls) delete s.migrated;
+    snapshotBase();
+    S.pending.clear(); S.deletes.clear();
+    prog.textContent = '';
+    render();
+    showSaved();
+  } catch(e) {
+    prog.textContent = '⚠ Не сохранилось: ' + e.message + (e.status === 409 || e.status === 422 ? ' — попробуйте ещё раз.' : '');
+  } finally { btn.disabled = false; $('#btnDiscard').disabled = false; }
+}
+function summary(){
+  const parts = [];
+  if (S.pending.size) parts.push(`файлов: ${S.pending.size}`);
+  const t = Object.keys(changedFiles()); if (t.length) parts.push(t.join(', '));
+  if (S.deletes.size) parts.push(`удалено: ${S.deletes.size}`);
+  return parts.join('; ') || 'правки';
+}
+function showSaved(){
+  const pane = $('#pane');
+  const box = document.createElement('div'); box.className = 'ok'; box.style.marginBottom = '12px';
+  box.innerHTML = `✔ Сохранено! Сайт обновится через 1–2 минуты. <a href="${esc(siteUrl())}" target="_blank" rel="noopener">Открыть сайт ↗</a>`;
+  pane.prepend(box); scrollTo({top:0, behavior:'smooth'});
+}
+$('#btnSave').onclick = saveAll;
+$('#btnDiscard').onclick = async () => {
+  if (!window.confirm('Отменить все несохранённые изменения?')) return;
+  $('#btnDiscard').disabled = true;
+  try { await loadAll(); render(); toast('Изменения отменены'); } catch(e){ toast('Ошибка: ' + e.message); }
+  finally { $('#btnDiscard').disabled = false; }
+};
+addEventListener('beforeunload', e => { if (!$('#app').hidden && hasChanges()) { e.preventDefault(); e.returnValue = ''; } });
+const siteUrl = () => `https://${S.owner.toLowerCase()}.github.io/${S.repo}/`;
+
+/* =====================================================================
+   ОТРИСОВКА
+   ===================================================================== */
+function updateSavebar(){ $('#savebar').hidden = !hasChanges(); }
+function render(){
+  $('#siteName').textContent = S.fair.name || 'ярмарка';
+  $('#siteLink').href = siteUrl();
+  renderNav();
+  if (S.view.type === 'shop' && S.shops[S.view.id]) renderShop(S.view.id);
+  else { S.view = {type:'fair'}; renderFair(); }
+  updateSavebar();
+}
+function renderNav(){
+  const nav = $('#nav');
+  const shops = S.stalls.filter(s => s.kind === 'shop');
+  nav.innerHTML = `<button data-v="fair" class="${S.view.type==='fair'?'on':''}">🎪 Ярмарка и места</button>
+    <div class="sep">Мастерские</div>
+    ${shops.map(s => { const d = S.shops[s.id];
+      return `<button data-v="shop" data-id="${esc(s.id)}" class="${S.view.type==='shop'&&S.view.id===s.id?'on':''}">
+        <span class="dot" style="background:${esc(d.color||'#b23a48')}"></span>${esc(d.name||s.id)}</button>`; }).join('')}
+    <button data-v="new" style="border-style:dashed">＋ Новая мастерская</button>`;
+}
+$('#nav').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.v === 'fair') S.view = {type:'fair'};
+  else if (b.dataset.v === 'shop') S.view = {type:'shop', id:b.dataset.id};
+  else if (b.dataset.v === 'new') return newShop();
+  render(); scrollTo({top:0});
+});
+
+/* ---- поля формы ---- */
+function field(label, value, attrs='', type='text'){
+  return `<label class="f">${label}</label>` + (type === 'textarea'
+    ? `<textarea class="inp" ${attrs}>${esc(value)}</textarea>`
+    : `<input class="inp" type="${type}" value="${esc(value)}" ${attrs}>`);
+}
+function colorField(label, value, attrs){
+  const v = /^#[0-9a-f]{6}$/i.test(value||'') ? value : '#ffffff';
+  return `<label class="f">${label}</label><div class="color">
+    <input type="color" value="${esc(v)}" ${attrs} data-sync>
+    <input class="inp" value="${esc(value||'')}" placeholder="пусто — по умолчанию" ${attrs}></div>`;
+}
+/* привязка полей к объекту: data-k="ключ", data-o="fair|header|shop" */
+function bind(root, getObj){
+  root.querySelectorAll('[data-k]').forEach(el => {
+    const ev = (el.type === 'checkbox' || el.tagName === 'SELECT' || el.type === 'color' || el.type === 'range') ? 'input' : 'input';
+    el.addEventListener(ev, () => {
+      const o = getObj(el.dataset.o); if (!o) return;
+      let v = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : el.value;
+      if (el.dataset.list === 'comma') v = el.value.split(',').map(s => s.trim()).filter(Boolean);
+      o[el.dataset.k] = v;
+      if (el.type === 'color') { const t = el.parentNode.querySelector('.inp'); if (t) t.value = v; }
+      else if (el.parentNode.classList.contains('color')) { const c = el.parentNode.querySelector('input[type=color]'); if (/^#[0-9a-f]{6}$/i.test(v)) c.value = v; }
+      if (el.dataset.k === 'name' || el.dataset.k === 'color') renderNav();
+      if (el.type === 'range') { const out = el.previousElementSibling && el.previousElementSibling.querySelector('output'); if (out) out.textContent = v; }
+      updateSavebar();
+    });
+  });
+}
+
+/* ---- предпросмотр картинок ---- */
+function previewUrl(path){
+  if (!path) return '';
+  if (S.pending.has(path)) { const f = S.pending.get(path); return f.__url || (f.__url = URL.createObjectURL(f)); }
+  return rawUrl(path);
+}
+function shopPath(id, f){ if (!f) return ''; if (f.startsWith('./')) return f.slice(2); return /[\/:]/.test(f) ? f : `models/${id}/${f}`; }
+
+/* =====================================================================
+   ЯРМАРКА
+   ===================================================================== */
+function renderFair(){
+  const f = S.fair; const h = f.header || {};
+  const pane = $('#pane');
+  pane.innerHTML = `
+  <h2>Ярмарка</h2><p class="muted">Название, оформление и порядок торговых мест.</p>
+  <div class="card sect">
+    <h3>Основное</h3>
+    ${field('Название ярмарки', f.name||'', 'data-o="fair" data-k="name"')}
+    ${field('Подзаголовок', f.tagline||'', 'data-o="fair" data-k="tagline"', 'textarea')}
+    ${field('Ссылка для аренды мест (ваша группа ВК)', f.rentVk||'', 'data-o="fair" data-k="rentVk"')}
+    <div class="grid2">
+      <div>${field('Надпись на свободном месте', f.rentTitle||'', 'data-o="fair" data-k="rentTitle"')}</div>
+      <div>${field('Текст на свободном месте', f.rentText||'', 'data-o="fair" data-k="rentText"')}</div>
+    </div>
+    ${field('Кнопка аренды в шапке', f.rentBanner||'', 'data-o="fair" data-k="rentBanner"')}
+  </div>
+
+  <div class="card sect">
+    <h3>Торговые места <small class="muted">(${S.stalls.length})</small></h3>
+    <p class="small muted">Порядок — как в рядах на сайте, слева направо.</p>
+    <div class="stalls">${S.stalls.map((s,i) => `
+      <div class="stall-row">
+        <span class="dot" style="width:14px;height:14px;border-radius:50%;background:${s.kind==='shop'?esc(S.shops[s.id].color||'#b23a48'):'#9aa3a8'}"></span>
+        <div class="t">${s.kind==='shop' ? esc(S.shops[s.id].name||s.id) + ` <small>· ${S.shops[s.id].products.length} изд.</small>`
+                      : s.kind==='missing' ? `⚠ ${esc(s.id)} <small>— нет файла shops/${esc(s.id)}.js</small>`
+                      : `Место № ${i+1} <small>— свободно</small>`}</div>
+        <button class="btn sm" data-mv="${i}" data-d="-1" ${i===0?'disabled':''}>↑</button>
+        <button class="btn sm" data-mv="${i}" data-d="1" ${i===S.stalls.length-1?'disabled':''}>↓</button>
+        ${s.kind!=='shop' ? `<button class="btn sm danger" data-rm="${i}">✕</button>` : ''}
+      </div>`).join('')}</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="addEmpty">＋ Свободное место</button>
+      <button class="btn" id="addShop2">＋ Новая мастерская</button>
+    </div>
+  </div>
+
+  <div class="card sect">
+    <h3>Шапка</h3>
+    <label class="f">Картинка шапки</label>
+    <div class="file">${h.image ? `<img src="${esc(previewUrl(h.image))}" alt="">` : ''}
+      <span class="nm">${esc(h.image||'нет')}</span>
+      <label class="btn sm">Загрузить<input type="file" accept="image/*" hidden data-up="header"></label>
+      ${h.image ? '<button class="btn sm danger" data-clear="header">Убрать</button>' : ''}</div>
+    <label class="f">Как показывать картинку</label>
+    <select class="inp" data-o="header" data-k="fit">
+      <option value="cover" ${h.fit!=='banner'?'selected':''}>Фоном под заголовком</option>
+      <option value="banner" ${h.fit==='banner'?'selected':''}>Целиком, как готовый баннер</option></select>
+    <label class="chk"><input type="checkbox" data-o="header" data-k="showTitle" ${h.showTitle!==false?'checked':''}> Показывать заголовок</label>
+    <label class="chk"><input type="checkbox" data-o="header" data-k="garland" ${h.garland!==false?'checked':''}> Гирлянда</label>
+    <label class="chk"><input type="checkbox" data-o="header" data-k="snow" ${h.snow!==false?'checked':''}> Снежинки</label>
+    <div class="grid2">
+      <div>${colorField('Цвет шапки сверху', h.colorTop||'', 'data-o="header" data-k="colorTop"')}</div>
+      <div>${colorField('Цвет шапки снизу', h.colorBottom||'', 'data-o="header" data-k="colorBottom"')}</div>
+    </div>
+    ${colorField('Цвет заголовка', h.textColor||'', 'data-o="header" data-k="textColor"')}
+  </div>
+
+  <div class="card sect">
+    <h3>Фон страницы</h3>
+    <div class="grid2">
+      <div>${colorField('Цвет фона главной', f.pageColor||'', 'data-o="fair" data-k="pageColor"')}</div>
+      <div>${colorField('Цвет текста на фоне', f.pageText||'', 'data-o="fair" data-k="pageText"')}</div>
+    </div>
+    ${colorField('Фон страниц мастерских по умолчанию', f.shopPageColor||'', 'data-o="fair" data-k="shopPageColor"')}
+    <label class="f">Фото фоном всей страницы (закрывает цвет)</label>
+    <div class="file">${f.background ? `<img src="${esc(previewUrl(f.background))}" alt="">` : ''}
+      <span class="nm">${esc(f.background||'нет')}</span>
+      <label class="btn sm">Загрузить<input type="file" accept="image/*" hidden data-up="background"></label>
+      ${f.background ? '<button class="btn sm danger" data-clear="background">Убрать</button>' : ''}</div>
+    <label class="f">Затемнение фото: <output>${f.backgroundDim ?? 0.25}</output></label>
+    <input type="range" min="0" max="0.7" step="0.05" value="${f.backgroundDim ?? 0.25}" data-o="fair" data-k="backgroundDim" style="width:100%">
+  </div>`;
+  bind(pane, o => o === 'header' ? (S.fair.header ||= {}) : S.fair);
+
+  pane.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.mv, j = i + +b.dataset.d; [S.stalls[i], S.stalls[j]] = [S.stalls[j], S.stalls[i]]; render(); });
+  pane.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { S.stalls.splice(+b.dataset.rm, 1); render(); });
+  $('#addEmpty').onclick = () => { S.stalls.push({kind:'empty', data:{empty:true}}); render(); };
+  $('#addShop2').onclick = newShop;
+  pane.querySelectorAll('[data-up]').forEach(inp => inp.onchange = () => {
+    const file = inp.files[0]; if (!file) return;
+    const name = safeFileName(file.name, n => S.files.has('design/'+n) || S.pending.has('design/'+n));
+    const path = 'design/' + name; S.pending.set(path, file);
+    if (inp.dataset.up === 'header') (S.fair.header ||= {}).image = path; else S.fair.background = path;
+    render(); toast('Картинка добавлена — нажмите «Сохранить на сайт»');
+  });
+  pane.querySelectorAll('[data-clear]').forEach(b => b.onclick = () => {
+    if (b.dataset.clear === 'header') (S.fair.header ||= {}).image = ''; else S.fair.background = '';
+    render(); });
+}
+
+/* =====================================================================
+   МАСТЕРСКАЯ
+   ===================================================================== */
+function newShop(){
+  const name = window.prompt('Название новой мастерской:'); if (!name) return;
+  let id = slug(name).replace(/\./g,'-'); if (!id || id === 'labels') id = 'shop';
+  let k = 2, base = id; while (S.shops[id] || S.files.has(`shops/${id}.js`)) id = `${base}-${k++}`;
+  S.shops[id] = { name, tagline:'', vk:'', vkMessages:'', logo:'', color:'#2f5d50', pageColor:'', pageText:'', products:[] };
+  const emptyIdx = S.stalls.findIndex(s => s.kind === 'empty');
+  if (emptyIdx >= 0) S.stalls[emptyIdx] = {kind:'shop', id}; else S.stalls.push({kind:'shop', id});
+  S.view = {type:'shop', id}; render(); toast(`Мастерская создана, адрес: …/#${id}`);
+}
+function renderShop(id){
+  const d = S.shops[id], pane = $('#pane');
+  const stall = S.stalls.find(s => s.kind === 'shop' && s.id === id);
+  pane.innerHTML = `
+  <h2>${esc(d.name || id)}</h2>
+  <p class="muted small">Адрес мастерской: <a href="${esc(siteUrl())}#${esc(id)}" target="_blank" rel="noopener">${esc(siteUrl())}#${esc(id)}</a> · файлы: <code>models/${esc(id)}/</code></p>
+  ${stall && stall.migrated ? '<div class="warnbox">Эта мастерская была записана прямо в fair.js. При сохранении она переедет в отдельный файл shops/'+esc(id)+'.js — ничего делать не нужно.</div>' : ''}
+
+  <div class="card sect">
+    <h3>Товары <small class="muted">(${d.products.length})</small></h3>
+    <div class="prods">${d.products.map((p,i) => {
+      const img = p.photos && p.photos[0] ? previewUrl(shopPath(id, p.photos[0])) : '';
+      const isNew = [p.model, ...(p.photos||[])].some(f => f && S.pending.has(shopPath(id, f)));
+      return `<div class="prod">
+        <div class="ph">${img ? `<img src="${esc(img)}" alt="">` : (p.model ? '3D' : 'нет фото')}<span class="b">${p.model ? '3D' : 'Фото'}${p.photos&&p.photos.length ? ' · '+p.photos.length+' фото' : ''}</span></div>
+        <div class="in"><b>${esc(p.name||'(без названия)')}</b>${isNew?'<span class="badge-new">новое</span>':''}
+          <span class="muted small">${esc(p.price||'')}${p.category ? ' · '+esc(p.category) : ''}</span></div>
+        <div class="acts">
+          <button class="btn sm" data-edit="${i}">✎ Изменить</button>
+          <button class="btn sm" data-pmv="${i}" data-d="-1" ${i===0?'disabled':''}>↑</button>
+          <button class="btn sm" data-pmv="${i}" data-d="1" ${i===d.products.length-1?'disabled':''}>↓</button>
+          <button class="btn sm danger" data-pdel="${i}">Удалить</button>
+        </div></div>`; }).join('')}
+    </div>
+    <button class="btn primary" id="addProd" style="margin-top:12px">＋ Добавить товар</button>
+  </div>
+
+  <div class="card sect">
+    <h3>О мастерской</h3>
+    ${field('Название', d.name||'', 'data-o="shop" data-k="name"')}
+    ${field('Чем занимается (подзаголовок)', d.tagline||'', 'data-o="shop" data-k="tagline"')}
+    <div class="grid2">
+      <div>${field('Страница ВК', d.vk||'', 'data-o="shop" data-k="vk" placeholder="https://vk.com/…"')}</div>
+      <div>${field('Куда ведёт «Заказать»', d.vkMessages||'', 'data-o="shop" data-k="vkMessages" placeholder="https://vk.me/… или страница группы"')}</div>
+    </div>
+    <label class="f">Логотип</label>
+    <div class="file">${d.logo ? `<img src="${esc(previewUrl(shopPath(id, d.logo)))}" alt="">` : ''}
+      <span class="nm">${esc(d.logo||'нет — на прилавке будут товары')}</span>
+      <label class="btn sm">Загрузить<input type="file" accept="image/*" hidden id="upLogo"></label>
+      ${d.logo ? '<button class="btn sm danger" id="clrLogo">Убрать</button>' : ''}</div>
+  </div>
+
+  <div class="card sect">
+    <h3>Цвета</h3>
+    ${colorField('Навес лавки', d.color||'', 'data-o="shop" data-k="color"')}
+    <div class="grid2">
+      <div>${colorField('Фон страницы мастерской', d.pageColor||'', 'data-o="shop" data-k="pageColor"')}</div>
+      <div>${colorField('Цвет заголовка на фоне', d.pageText||'', 'data-o="shop" data-k="pageText"')}</div>
+    </div>
+    <p class="small muted">Пустое поле — цвет по умолчанию. Тёмный фон → светлый заголовок.</p>
+  </div>
+
+  <div class="card sect">
+    <h3>Удалить мастерскую</h3>
+    <p class="small muted">Место в рядах станет свободным. Можно удалить и все её файлы (модели, фото).</p>
+    <label class="chk"><input type="checkbox" id="delFiles" checked> Удалить и файлы из models/${esc(id)}/</label>
+    <button class="btn danger" id="delShop" style="margin-top:10px">Удалить мастерскую</button>
+  </div>`;
+  bind(pane, () => S.shops[id]);
+
+  $('#addProd').onclick = () => openProduct(id, -1);
+  pane.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openProduct(id, +b.dataset.edit));
+  pane.querySelectorAll('[data-pmv]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.pmv, j = i + +b.dataset.d, a = d.products; [a[i], a[j]] = [a[j], a[i]]; render(); });
+  pane.querySelectorAll('[data-pdel]').forEach(b => b.onclick = () => {
+    const p = d.products[+b.dataset.pdel];
+    if (!window.confirm(`Удалить товар «${p.name}»? Его модель и фото тоже удалятся с сайта.`)) return;
+    for (const f of [p.model, p.usdz, ...(p.photos||[])]) if (f) dropFile(shopPath(id, f));
+    d.products.splice(+b.dataset.pdel, 1); render();
+  });
+  $('#upLogo').onchange = e => { const file = e.target.files[0]; if (!file) return;
+    if (d.logo) dropFile(shopPath(id, d.logo));
+    d.logo = addShopFile(id, file); render(); };
+  const clr = $('#clrLogo'); if (clr) clr.onclick = () => { dropFile(shopPath(id, d.logo)); d.logo = ''; render(); };
+  $('#delShop').onclick = () => {
+    if (!window.confirm(`Удалить мастерскую «${d.name}»?`)) return;
+    const i = S.stalls.findIndex(s => s.kind === 'shop' && s.id === id);
+    S.stalls[i] = {kind:'empty', data:{empty:true}};
+    if (S.files.has(`shops/${id}.js`)) S.deletes.add(`shops/${id}.js`);
+    if ($('#delFiles').checked) for (const f of S.files) if (f.startsWith(`models/${id}/`)) S.deletes.add(f);
+    for (const k of [...S.pending.keys()]) if (k.startsWith(`models/${id}/`)) S.pending.delete(k);
+    delete S.shops[id]; S.view = {type:'fair'}; render();
+  };
+}
+/* файл мастерской: кладём в models/<id>/, возвращаем короткое имя */
+function addShopFile(id, file){
+  const name = safeFileName(file.name, n => S.files.has(`models/${id}/${n}`) || S.pending.has(`models/${id}/${n}`));
+  S.pending.set(`models/${id}/${name}`, file);
+  S.deletes.delete(`models/${id}/${name}`);
+  return name;
+}
+function dropFile(path){ if (!path) return; if (S.pending.has(path)) S.pending.delete(path); else if (S.files.has(path)) S.deletes.add(path); }
+
+/* =====================================================================
+   ОКНО ТОВАРА
+   ===================================================================== */
+function openProduct(shopId, idx){
+  const d = S.shops[shopId];
+  const isNew = idx < 0;
+  const used = new Set(d.products.map(p => p.id));
+  let n = d.products.length + 1; while (used.has('tovar-' + n)) n++;
+  // работаем с копией, применяем по кнопке «Готово»
+  const p = isNew ? { id:'tovar-' + n, name:'', category:'', price:'', specs:[], desc:'', photos:[] }
+                  : JSON.parse(JSON.stringify(d.products[idx]));
+  p.photos = p.photos || [];
+  const added = [], removed = [];       // файлы, добавленные/убранные в этом окне
+  const cats = [...new Set(Object.values(S.shops).flatMap(s => s.products.map(x => x.category)).filter(Boolean))];
+
+  const draw = () => {
+    const modelPath = shopPath(shopId, p.model);
+    const modelFile = S.pending.get(modelPath);
+    $('#modalBody').innerHTML = `
+      <h2 style="font-size:20px">${isNew ? 'Новый товар' : 'Товар: ' + esc(p.name || p.id)}</h2>
+      ${field('Название', p.name, 'id="pName" placeholder="Например: Брошь «Сирень»"')}
+      <div class="grid2">
+        <div><label class="f">Раздел</label><input class="inp" id="pCat" list="catList" value="${esc(p.category||'')}" placeholder="Например: Украшения">
+          <datalist id="catList">${cats.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
+        <div>${field('Цена', p.price, 'id="pPrice" placeholder="700 ₽"')}</div>
+      </div>
+      ${field('Характеристики (через запятую)', (p.specs||[]).join(', '), 'id="pSpecs" placeholder="Полимерная глина, 7 см, Ручная работа"')}
+      ${field('Описание', p.desc||'', 'id="pDesc"', 'textarea')}
+
+      <label class="f">3D-модель (.glb)</label>
+      <div class="file"><span class="nm">${p.model ? esc(p.model) + (modelFile ? ` — ${fmtMB(modelFile.size)}, новая` : '') : 'нет — товар будет показан только фото'}</span>
+        <label class="btn sm">${p.model ? 'Заменить' : 'Загрузить'}<input type="file" accept=".glb,.gltf,.stl" hidden id="pModel"></label>
+        ${p.model ? '<button class="btn sm danger" id="pModelClr">Убрать</button>' : ''}</div>
+      ${modelFile && modelFile.size > 15*1048576 ? `<div class="warnbox">Модель весит ${fmtMB(modelFile.size)} — на телефоне будет долго грузиться. Лучше сначала уменьшить её программой SHRINK (до 3–8 МБ).</div>` : ''}
+
+      <label class="f">Фото (можно несколько; первое — главное)</label>
+      <div class="photos">${p.photos.map((f,i) => `<div class="p"><img src="${esc(previewUrl(shopPath(shopId, f)))}" alt="">
+        <button data-phrm="${i}" title="Убрать">×</button>
+        <span class="mv">${i>0?`<button data-phmv="${i}" data-d="-1" title="Левее">‹</button>`:''}${i<p.photos.length-1?`<button data-phmv="${i}" data-d="1" title="Правее">›</button>`:''}</span></div>`).join('')}
+        <label class="btn sm" style="width:88px;height:88px;display:grid;place-items:center;text-align:center">＋ Фото<input type="file" accept="image/*" multiple hidden id="pPhotos"></label>
+      </div>
+      <p class="small muted">Фото лучше уменьшать до 1200–1600 пикселей — так страница быстрее открывается.</p>
+
+      <div class="row" style="margin-top:16px">
+        <button class="btn" id="pCancel">Отмена</button>
+        <button class="btn primary" id="pOk">Готово</button>
+      </div>
+      <p class="small muted" style="margin-top:8px">После «Готово» не забудьте нажать «Сохранить на сайт» внизу экрана.</p>`;
+
+    const keep = () => {           // сохраняем введённый текст перед перерисовкой
+      p.name = $('#pName').value.trim(); p.category = $('#pCat').value.trim(); p.price = $('#pPrice').value.trim();
+      p.specs = $('#pSpecs').value.split(',').map(s => s.trim()).filter(Boolean); p.desc = $('#pDesc').value.trim();
+    };
+    $('#pModel').onchange = e => { const file = e.target.files[0]; if (!file) return; keep();
+      if (file.size > 100*1048576) { toast('Файл больше 100 МБ — GitHub его не примет. Уменьшите модель программой SHRINK.'); return; }
+      if (p.model) removed.push(shopPath(shopId, p.model));
+      p.model = addShopFile(shopId, file); added.push(shopPath(shopId, p.model)); draw(); };
+    const mc = $('#pModelClr'); if (mc) mc.onclick = () => { keep(); removed.push(shopPath(shopId, p.model)); delete p.model; draw(); };
+    $('#pPhotos').onchange = e => { keep();
+      for (const file of e.target.files) { const nm = addShopFile(shopId, file); p.photos.push(nm); added.push(shopPath(shopId, nm)); }
+      draw(); };
+    $('#modalBody').querySelectorAll('[data-phrm]').forEach(b => b.onclick = () => { keep();
+      const [f] = p.photos.splice(+b.dataset.phrm, 1); removed.push(shopPath(shopId, f)); draw(); });
+    $('#modalBody').querySelectorAll('[data-phmv]').forEach(b => b.onclick = () => { keep();
+      const i = +b.dataset.phmv, j = i + +b.dataset.d; [p.photos[i], p.photos[j]] = [p.photos[j], p.photos[i]]; draw(); });
+    $('#pCancel').onclick = () => {        // откатываем добавленные в окне файлы
+      for (const path of added) S.pending.delete(path);
+      close(); };
+    $('#pOk').onclick = () => { keep();
+      if (!p.name) { toast('Укажите название товара'); $('#pName').focus(); return; }
+      for (const path of removed) dropFile(path);
+      if (!p.photos.length) delete p.photos;
+      if (isNew) d.products.push(p); else d.products[idx] = p;
+      close(); render(); toast(isNew ? 'Товар добавлен — нажмите «Сохранить на сайт»' : 'Изменения внесены — нажмите «Сохранить на сайт»'); };
+  };
+  const close = () => { $('#modal').hidden = true; document.body.style.overflow = ''; updateSavebar(); };
+  $('#modal').hidden = false; document.body.style.overflow = 'hidden';
+  draw(); setTimeout(() => $('#pName') && $('#pName').focus(), 50);
+}
+</script>
+</body>
+</html>
