@@ -24,8 +24,10 @@
 
   /* ---------- Каталог ---------- */
   .top{padding:28px 18px 10px;text-align:center}
+  .top, footer, .to-fair{color:var(--page-ink,var(--ink))}
+  footer a, a.to-fair{color:var(--page-ink,var(--pine))}
   .top h1{font-family:Comfortaa,sans-serif;font-size:clamp(22px,5.5vw,34px);margin:0 0 6px;letter-spacing:.2px}
-  .top p{margin:0;color:var(--muted);font-size:15px}
+  .top p{margin:0;color:var(--page-ink,var(--muted));font-size:15px}
   .badge3d{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 12px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--pine)}
   .cats{display:flex;gap:8px;overflow-x:auto;padding:14px 16px 6px;scrollbar-width:none;justify-content:flex-start}
   @media(min-width:700px){.cats{justify-content:center}}
@@ -694,6 +696,7 @@ function loop(){ if(!V.running) return; requestAnimationFrame(loop); V.controls.
 let curShop = null;
 async function openProduct(gid){
   const p=byId[gid]; if(!p) return route0();
+  shopColors(p.shop);
   curShop=p.shop; V.list=p.shop.products; V.idx=V.list.indexOf(p); V.p=p;
   $('#fair').hidden=true; $('#catalog').hidden=true; $('#labels').hidden=true; $('#viewer').hidden=false;
   document.title=`${p.name} — 3D | ${p.shop.name}`;
@@ -766,7 +769,9 @@ function renderCatalog(){
     </a>`).join('') || '<p style="grid-column:1/-1;text-align:center;color:var(--muted)">Товары скоро появятся</p>';
 }
 $('#cats').addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b) return; activeCat=b.dataset.c; renderCatalog(); });
+function shopColors(sh){ pageColors(sh.pageColor || FAIR?.shopPageColor, sh.pageText || FAIR?.shopPageText); }
 function showCatalog(sh){
+  shopColors(sh);
   closeViewer(); curShop=sh; activeCat='Все';
   $('#fair').hidden=true; $('#labels').hidden=true; $('#catalog').hidden=false;
   $('#shopName').textContent=sh.name||''; $('#shopTag').textContent=sh.tagline||'';
@@ -843,7 +848,14 @@ function renderFair(){
     }).join('');
   }
 }
+/* Цвет фона страницы и текста на нём */
+function pageColors(bg, ink){
+  const r=document.documentElement.style;
+  if(bg) r.setProperty('--bg', bg); else r.removeProperty('--bg');
+  if(ink) r.setProperty('--page-ink', ink); else r.removeProperty('--page-ink');
+}
 function showFair(){
+  pageColors(FAIR.pageColor, FAIR.pageText);
   closeViewer(); $('#catalog').hidden=true; $('#labels').hidden=true; $('#fair').hidden=false;
   document.title=FAIR.name;
 }

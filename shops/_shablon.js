@@ -14,6 +14,8 @@ fairShop('lavka', {
   vk:         'https://vk.com/...',
   vkMessages: 'https://vk.com/...',
   logo:       'logo.png',   // логотип в папке models/<имя>/ ('' — показывать товары)
+  pageColor:  '',          // цвет фона страницы мастерской, например '#efe4f3' ('' — как у ярмарки)
+  pageText:   '',          // цвет заголовка на этом фоне ('' — тёмный)
   color:      '#2f5d50',
 
   products: [
