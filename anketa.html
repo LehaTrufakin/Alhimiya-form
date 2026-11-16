@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Анкета мастерской для ярмарки</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f7f1e8;--paper:#fffaf3;--ink:#2b2622;--muted:#7b6f64;--line:#e5d9c8;--berry:#b23a48;--berry-d:#8f2a37;--pine:#2f5d50;--warn:#fff3cd}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;font-size:16px;line-height:1.5}
+  [hidden]{display:none!important}
+  a{color:var(--pine)}
+  .hero{text-align:center;color:#fff;padding:34px 18px 26px;background:linear-gradient(180deg,#14284a,#2f5d50)}
+  .hero h1{font-family:Comfortaa,sans-serif;font-size:clamp(22px,5.5vw,32px);margin:0 0 8px}
+  .hero p{margin:0 auto;max-width:640px;opacity:.92}
+  .wrap{max-width:760px;margin:0 auto;padding:18px 14px 80px}
+  .steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:-14px 0 14px}
+  .steps span{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:700;box-shadow:0 4px 12px -8px rgba(0,0,0,.3)}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:14px}
+  .card h2{font-family:Comfortaa,sans-serif;font-size:19px;margin:0 0 4px}
+  .muted{color:var(--muted)} .small{font-size:13px}
+  label.f{display:block;margin:14px 0 4px;font-weight:700;font-size:15px}
+  label.f i{font-style:normal;color:var(--berry)}
+  .inp{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;color:inherit}
+  .inp:focus{outline:2px solid #c9b79e;outline-offset:1px}
+  .inp.bad{border-color:var(--berry);background:#fff6f7}
+  textarea.inp{min-height:84px;resize:vertical}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .chip{width:40px;height:40px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+  .chip.on{box-shadow:0 0 0 3px var(--ink)}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 16px;font:inherit;font-weight:800;cursor:pointer;color:var(--ink)}
+  .btn.primary{background:var(--berry);border-color:var(--berry);color:#fff}
+  .btn.primary:hover{background:var(--berry-d)}
+  .btn.sm{padding:7px 11px;font-size:14px;border-radius:10px}
+  .btn.danger{color:var(--berry);border-color:#f0c9cf}
+  .btn:disabled{opacity:.55;cursor:default}
+  .filebtn{display:inline-flex;align-items:center;gap:6px}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .th{position:relative;width:84px;height:84px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#fff}
+  .th img{width:100%;height:100%;object-fit:cover}
+  .th button{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;line-height:1}
+  .fileline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:14px}
+  .prod{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px;background:#fff}
+  .prod-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .prod-h b{font-family:Comfortaa,sans-serif}
+  .warnbox{background:var(--warn);border-radius:12px;padding:10px 12px;font-size:14px;margin-top:8px}
+  .err{background:#fde8eb;color:var(--berry-d);border-radius:12px;padding:10px 12px;font-weight:700;margin-top:12px}
+  .ok{background:#e4f3ec;color:#1d5a44;border-radius:14px;padding:16px;margin-top:14px}
+  .ok h3{margin:0 0 6px;font-family:Comfortaa,sans-serif}
+  .chk{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:15px}
+  .chk input{margin-top:4px;width:18px;height:18px;flex:none}
+  .bar{position:sticky;bottom:0;margin-top:18px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 -8px 20px -14px rgba(0,0,0,.3)}
+  .bar .msg{flex:1;min-width:180px;font-size:14px;color:var(--muted)}
+  .vkhint{background:#e8f0fb;border:1px solid #c9daf3;border-radius:12px;padding:10px 12px;font-size:14px;margin-top:12px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1>Анкета мастерской</h1>
+  <p>для ярмарки «<span id="fairName">Ярмарка мастеров</span>». Заполните анкету, прикрепите фото изделий — и отправьте готовый файл нам во ВКонтакте. Всё остальное сделаем мы.</p>
+</header>
+<div class="wrap">
+  <div class="steps"><span>1. Заполните</span><span>2. Скачайте файл</span><span>3. Отправьте нам в ВК</span></div>
+  <div class="vkhint" id="vkHint" hidden>Похоже, вы открыли анкету внутри приложения ВКонтакте. Если файл в конце не скачается, откройте страницу в обычном браузере: <b>⋮ или «…» → «Открыть в браузере»</b>. Заполненный текст сохранится.</div>
+
+  <!-- 1. Мастерская -->
+  <section class="card">
+    <h2>О мастерской</h2>
+    <p class="muted small">Так мастерская будет подписана на вашей лавке в торговых рядах.</p>
+    <label class="f" for="sName">Название мастерской <i>*</i></label>
+    <input class="inp" id="sName" data-save placeholder="Например: Снежная лавка">
+    <label class="f" for="sTag">Чем занимаетесь (одна строка)</label>
+    <input class="inp" id="sTag" data-save placeholder="Вязаные игрушки и пледы ручной работы">
+    <div class="grid2">
+      <div><label class="f" for="sVk">Ссылка на вашу группу или страницу ВК <i>*</i></label>
+        <input class="inp" id="sVk" data-save placeholder="https://vk.com/..."></div>
+      <div><label class="f" for="sMsg">Куда писать покупателям для заказа</label>
+        <input class="inp" id="sMsg" data-save placeholder="если отличается: https://vk.me/..."></div>
+    </div>
+    <label class="f">Цвет навеса вашей лавки</label>
+    <div class="chips" id="chips"></div>
+    <label class="f">Логотип (необязательно)</label>
+    <div class="fileline"><label class="btn sm filebtn">Выбрать файл<input type="file" accept="image/*" id="logo" hidden></label>
+      <span class="muted" id="logoName">не выбран — на прилавке будут показаны ваши изделия</span></div>
+    <div class="thumbs" id="logoThumb"></div>
+  </section>
+
+  <!-- 2. Изделия -->
+  <section class="card">
+    <h2>Изделия</h2>
+    <p class="muted small">Добавьте каждое изделие отдельно. Нужны хотя бы фото (лучше 2–4 с разных сторон). Если у вас есть 3D-модель (.glb) — прикрепите её; если нет — можем сделать модель по вашим фото, договоримся отдельно.</p>
+    <div id="prods"></div>
+    <button class="btn" id="addProd" style="margin-top:12px">＋ Добавить изделие</button>
+  </section>
+
+  <!-- 3. Контакты -->
+  <section class="card">
+    <h2>Как с вами связаться</h2>
+    <p class="muted small">Эти данные нужны только нам для связи — на сайте они не публикуются.</p>
+    <div class="grid2">
+      <div><label class="f" for="cName">Как к вам обращаться <i>*</i></label><input class="inp" id="cName" data-save placeholder="Имя"></div>
+      <div><label class="f" for="cVk">Ваша личная страница ВК <i>*</i></label><input class="inp" id="cVk" data-save placeholder="https://vk.com/id..."></div>
+    </div>
+    <label class="f" for="cNote">Пожелания или вопросы</label>
+    <textarea class="inp" id="cNote" data-save placeholder="Например: хочу место в первом ряду, нужна помощь с 3D-моделями"></textarea>
+    <label class="chk"><input type="checkbox" id="agree"> <span>Подтверждаю, что изделия сделаны мной (моей мастерской), я вправе публиковать эти фото и модели, и согласен(на) с <a href="privacy.html" target="_blank" rel="noopener">политикой конфиденциальности и правилами площадки</a>.</span></label>
+  </section>
+
+  <div class="err" id="err" hidden></div>
+  <div class="bar">
+    <div class="msg" id="barMsg">Заполненный текст сохраняется в этом браузере — можно продолжить позже.</div>
+    <button class="btn primary" id="make">Сформировать файл заявки</button>
+  </div>
+
+  <div class="ok" id="done" hidden>
+    <h3>✔ Файл заявки готов!</h3>
+    <p style="margin:0 0 8px">Файл <b id="doneName"></b> (<span id="doneSize"></span>) сохранён в «Загрузки».</p>
+    <p style="margin:0 0 10px"><b>Последний шаг:</b> отправьте этот файл нам в сообщения сообщества — прикрепите его как документ (скрепка → «Файл»).</p>
+    <div class="fileline">
+      <a class="btn primary" id="sendVk" target="_blank" rel="noopener">Открыть сообщения ВКонтакте</a>
+      <a class="btn" id="again" download>Скачать файл ещё раз</a>
+    </div>
+    <p class="small muted" style="margin:10px 0 0">Мы разместим вашу мастерскую и напишем вам. Если что-то нужно поправить — просто пришлите новую анкету.</p>
+  </div>
+</div>
+
+<script src="fair.js" onerror="void 0"></script>
+<script>
+/* ============ настройки ярмарки ============ */
+const FAIR = (window.FAIR_CONFIG && window.FAIR_CONFIG.fair) || {};
+const SEND_TO = (FAIR.legal && FAIR.legal.vk) || FAIR.rentVk || 'https://vk.com/';
+document.getElementById('fairName').textContent = FAIR.name || 'Ярмарка мастеров';
+document.getElementById('sendVk').href = SEND_TO.replace('vk.com/', 'vk.me/').replace('vk.ru/', 'vk.me/');
+if (/VKAndroidApp|vkclient|VKiOS|com\.vk/i.test(navigator.userAgent)) document.getElementById('vkHint').hidden = false;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtMB = b => (b/1048576).toFixed(1).replace('.', ',') + ' МБ';
+const COLORS = ['#b23a48','#c0392b','#7a1f2b','#e07a9a','#7b3fa0','#a77bca','#2b5797','#4a90c2','#2aa198','#1f8a70','#2f5d50','#d4a017','#e07a2e','#8a5d36','#4a4a55'];
+
+/* ============ состояние ============ */
+let color = COLORS[10], logo = null;            // logo: File
+let prods = [];                                  // {id, name, category, price, specs, desc, model:File|null, photos:[File]}
+let uid = 1;
+const newProd = () => ({ id: uid++, name:'', category:'', price:'', specs:'', desc:'', model:null, photos:[] });
+
+/* ============ черновик (только текст) ============ */
+const DRAFT = 'fairAnketaDraft';
+function saveDraft(){
+  try {
+    const d = { color, fields:{}, prods: prods.map(p => ({name:p.name, category:p.category, price:p.price, specs:p.specs, desc:p.desc})) };
+    document.querySelectorAll('[data-save]').forEach(el => d.fields[el.id] = el.value);
+    localStorage.setItem(DRAFT, JSON.stringify(d));
+  } catch(e){}
+}
+function loadDraft(){
+  try {
+    const d = JSON.parse(localStorage.getItem(DRAFT) || 'null'); if (!d) return false;
+    if (d.color) color = d.color;
+    for (const [k,v] of Object.entries(d.fields || {})) { const el = document.getElementById(k); if (el) el.value = v; }
+    prods = (d.prods || []).map(p => ({...newProd(), ...p}));
+    return prods.length > 0;
+  } catch(e){ return false; }
+}
+document.addEventListener('input', e => { if (e.target.matches('[data-save]')) saveDraft(); });
+
+/* ============ цвет навеса ============ */
+function drawChips(){
+  $('#chips').innerHTML = COLORS.map(c => `<button type="button" class="chip${c===color?' on':''}" style="background:${c}" data-c="${c}" aria-label="цвет ${c}"></button>`).join('');
+}
+$('#chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; color = b.dataset.c; drawChips(); saveDraft(); });
+
+/* ============ логотип ============ */
+$('#logo').onchange = e => { logo = e.target.files[0] || null; drawLogo(); };
+function drawLogo(){
+  $('#logoName').textContent = logo ? `${logo.name} (${fmtMB(logo.size)})` : 'не выбран — на прилавке будут показаны ваши изделия';
+  $('#logoThumb').innerHTML = logo ? `<div class="th"><img src="${URL.createObjectURL(logo)}" alt=""><button type="button" id="logoDel">×</button></div>` : '';
+  const d = $('#logoDel'); if (d) d.onclick = () => { logo = null; $('#logo').value = ''; drawLogo(); };
+}
+
+/* ============ изделия ============ */
+function drawProds(){
+  $('#prods').innerHTML = prods.map((p, i) => `
+    <div class="prod" data-i="${i}">
+      <div class="prod-h"><b>Изделие ${i+1}</b>${prods.length > 1 ? `<button type="button" class="btn sm danger" data-del="${i}">Убрать</button>` : ''}</div>
+      <label class="f">Название <i>*</i></label>
+      <input class="inp" data-k="name" value="${esc(p.name)}" placeholder="Например: Ёлочный шар «Снегирь»">
+      <div class="grid2">
+        <div><label class="f">Раздел</label><input class="inp" data-k="category" value="${esc(p.category)}" placeholder="Ёлочные игрушки"></div>
+        <div><label class="f">Цена</label><input class="inp" data-k="price" value="${esc(p.price)}" placeholder="500 ₽"></div>
+      </div>
+      <label class="f">Характеристики через запятую</label>
+      <input class="inp" data-k="specs" value="${esc(p.specs)}" placeholder="Полимерная глина, 7 см, ручная роспись">
+      <label class="f">Описание</label>
+      <textarea class="inp" data-k="desc" placeholder="Пара предложений об изделии: из чего, размер, можно ли заказать в другом цвете">${esc(p.desc)}</textarea>
+      <label class="f">Фото <i>*</i> <span class="muted small">(первое — главное)</span></label>
+      <div class="thumbs">${p.photos.map((f, j) => `<div class="th"><img src="${URL.createObjectURL(f)}" alt=""><button type="button" data-phdel="${j}">×</button></div>`).join('')}
+        <label class="btn sm filebtn" style="width:84px;height:84px;justify-content:center;text-align:center">＋ Фото<input type="file" accept="image/*" multiple hidden data-photos></label></div>
+      <label class="f">3D-модель <span class="muted small">(если есть, файл .glb)</span></label>
+      <div class="fileline"><label class="btn sm filebtn">${p.model ? 'Заменить' : 'Выбрать файл'}<input type="file" accept=".glb,.gltf,.stl" hidden data-model></label>
+        <span class="muted">${p.model ? esc(p.model.name) + ' (' + fmtMB(p.model.size) + ')' : 'нет'}</span>
+        ${p.model ? '<button type="button" class="btn sm danger" data-mdel>Убрать</button>' : ''}</div>
+      ${p.model && p.model.size > 25*1048576 ? `<div class="warnbox">Модель весит ${fmtMB(p.model.size)} — это слишком много для телефона. Мы уменьшим её при размещении, но если можете — сохраните модель в меньшем качестве.</div>` : ''}
+    </div>`).join('');
+}
+$('#prods').addEventListener('input', e => {
+  const box = e.target.closest('.prod'); if (!box || !e.target.dataset.k) return;
+  prods[+box.dataset.i][e.target.dataset.k] = e.target.value; e.target.classList.remove('bad'); saveDraft();
+});
+$('#prods').addEventListener('change', e => {
+  const box = e.target.closest('.prod'); if (!box) return; const p = prods[+box.dataset.i];
+  if (e.target.matches('[data-photos]')) { p.photos.push(...e.target.files); drawProds(); }
+  if (e.target.matches('[data-model]')) { p.model = e.target.files[0] || null; drawProds(); }
+});
+$('#prods').addEventListener('click', e => {
+  const box = e.target.closest('.prod'); if (!box) return; const i = +box.dataset.i, p = prods[i];
+  if (e.target.matches('[data-del]')) { if (confirm('Убрать это изделие из анкеты?')) { prods.splice(i, 1); drawProds(); saveDraft(); } }
+  if (e.target.matches('[data-phdel]')) { p.photos.splice(+e.target.dataset.phdel, 1); drawProds(); }
+  if (e.target.matches('[data-mdel]')) { p.model = null; drawProds(); }
+});
+$('#addProd').onclick = () => { prods.push(newProd()); drawProds(); saveDraft();
+  const last = document.querySelector('.prod:last-child'); last && last.scrollIntoView({behavior:'smooth', block:'center'}); };
+
+/* ============ уменьшение фото в браузере ============ */
+async function shrinkImage(file, max, keepPng){
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const png = keepPng && file.type === 'image/png';
+    if (k === 1 && file.size < 1.2*1048576 && /jpe?g|png/.test(file.type)) return { data: new Uint8Array(await file.arrayBuffer()), ext: png ? 'png' : (file.type.includes('png') ? 'png' : 'jpg') };
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const g = c.getContext('2d');
+    if (!png) { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); }
+    g.drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, png ? 'image/png' : 'image/jpeg', 0.86));
+    return { data: new Uint8Array(await blob.arrayBuffer()), ext: png ? 'png' : 'jpg' };
+  } catch(e) {      // формат, который браузер не умеет открыть (например HEIC) — отправляем как есть
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    return { data: new Uint8Array(await file.arrayBuffer()), ext };
+  }
+}
+
+/* ============ ZIP без внешних библиотек ============ */
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8){ let c = ~0; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 255] ^ (c >>> 8); return (~c) >>> 0; }
+function makeZip(files){
+  const enc = new TextEncoder(), parts = [], central = []; let offset = 0;
+  for (const f of files) {
+    const nm = enc.encode(f.name), crc = crc32(f.data), sz = f.data.length;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true); lh.setUint32(14, crc, true); lh.setUint32(18, sz, true);
+    lh.setUint32(22, sz, true); lh.setUint16(26, nm.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), nm, f.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true); ch.setUint32(16, crc, true);
+    ch.setUint32(20, sz, true); ch.setUint32(24, sz, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), nm);
+    offset += 30 + nm.length + sz;
+  }
+  const cd = central.reduce((a, b) => a + b.length, 0), end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cd, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type:'application/zip' });
+}
+const TR = {а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
+const slug = s => String(s).toLowerCase().split('').map(c => TR[c] ?? c).join('').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'masterskaya';
+
+/* ============ проверка и сборка ============ */
+function fail(msg, el){
+  const e = $('#err'); e.textContent = msg; e.hidden = false;
+  if (el) { el.classList.add('bad'); el.scrollIntoView({behavior:'smooth', block:'center'}); el.focus && el.focus(); }
+  return false;
+}
+function validate(){
+  $('#err').hidden = true; document.querySelectorAll('.bad').forEach(x => x.classList.remove('bad'));
+  if (!$('#sName').value.trim()) return fail('Укажите название мастерской.', $('#sName'));
+  if (!/vk\.(com|ru|me)\//i.test($('#sVk').value)) return fail('Укажите ссылку на вашу группу или страницу ВКонтакте (вида https://vk.com/...).', $('#sVk'));
+  if (!prods.length) return fail('Добавьте хотя бы одно изделие.', $('#addProd'));
+  for (let i = 0; i < prods.length; i++) {
+    const p = prods[i], box = document.querySelector(`.prod[data-i="${i}"]`);
+    if (!p.name.trim()) return fail(`Укажите название изделия ${i+1}.`, box.querySelector('[data-k="name"]'));
+    if (!p.photos.length && !p.model) return fail(`Добавьте фото к изделию «${p.name}».`, box);
+  }
+  if (!$('#cName').value.trim()) return fail('Напишите, как к вам обращаться.', $('#cName'));
+  if (!/vk\.(com|ru)\//i.test($('#cVk').value)) return fail('Укажите вашу личную страницу ВКонтакте, чтобы мы могли с вами связаться.', $('#cVk'));
+  if (!$('#agree').checked) return fail('Подтвердите согласие с правилами площадки (галочка внизу анкеты).', $('#agree'));
+  return true;
+}
+
+$('#make').onclick = async () => {
+  if (!validate()) return;
+  const btn = $('#make'), msg = $('#barMsg'); btn.disabled = true;
+  try {
+    const files = [], total = prods.reduce((a, p) => a + p.photos.length + (p.model ? 1 : 0), 0) + (logo ? 1 : 0);
+    let done = 0; const step = t => { done++; msg.textContent = `Готовлю файлы: ${done} из ${total}… ${t}`; };
+    let logoName = '';
+    if (logo) { const r = await shrinkImage(logo, 800, true); logoName = 'logo.' + r.ext; files.push({ name: logoName, data: r.data }); step('логотип'); }
+    const products = [];
+    for (let i = 0; i < prods.length; i++) {
+      const p = prods[i], base = `izd${i+1}`, photos = [];
+      for (let j = 0; j < p.photos.length; j++) {
+        const r = await shrinkImage(p.photos[j], 1600, false); const nm = `${base}-foto${j+1}.${r.ext}`;
+        files.push({ name: nm, data: r.data }); photos.push(nm); step(p.name);
+      }
+      let model = '';
+      if (p.model) { const ext = (p.model.name.split('.').pop() || 'glb').toLowerCase(); model = `${base}-model.${ext}`;
+        files.push({ name: model, data: new Uint8Array(await p.model.arrayBuffer()) }); step(p.name); }
+      products.push({ name: p.name.trim(), category: p.category.trim(), price: p.price.trim(),
+        specs: p.specs.split(',').map(s => s.trim()).filter(Boolean), desc: p.desc.trim(), model, photos });
+    }
+    const anketa = {
+      format: 'fair-anketa', version: 1, created: new Date().toISOString(), fair: FAIR.name || '',
+      shop: { name: $('#sName').value.trim(), tagline: $('#sTag').value.trim(), vk: $('#sVk').value.trim(),
+              vkMessages: $('#sMsg').value.trim(), color, logo: logoName },
+      products,
+      contact: { name: $('#cName').value.trim(), vk: $('#cVk').value.trim(), note: $('#cNote').value.trim() },
+      agreed: true,
+    };
+    files.unshift({ name: 'anketa.json', data: new TextEncoder().encode(JSON.stringify(anketa, null, 2)) });
+    const zip = makeZip(files), name = `zayavka-${slug(anketa.shop.name)}.zip`, url = URL.createObjectURL(zip);
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    $('#again').href = url; $('#again').download = name;
+    $('#doneName').textContent = name; $('#doneSize').textContent = fmtMB(zip.size);
+    $('#done').hidden = false; $('#done').scrollIntoView({behavior:'smooth'});
+    msg.textContent = 'Файл готов. Отправьте его нам во ВКонтакте.';
+  } catch(e) {
+    fail('Не получилось собрать файл: ' + e.message + '. Попробуйте открыть анкету в браузере Chrome или на компьютере.');
+    msg.textContent = '';
+  } finally { btn.disabled = false; }
+};
+
+/* ============ старт ============ */
+if (!loadDraft()) prods = [newProd()];
+drawChips(); drawLogo(); drawProds();
+</script>
+</body>
+</html>

@@ -471,13 +471,17 @@ function renderNav(){
     ${shops.map(s => { const d = S.shops[s.id];
       return `<button data-v="shop" data-id="${esc(s.id)}" class="${S.view.type==='shop'&&S.view.id===s.id?'on':''}">
         <span class="dot" style="background:${esc(d.color||'#b23a48')}"></span>${esc(d.name||s.id)}</button>`; }).join('')}
-    <button data-v="new" style="border-style:dashed">＋ Новая мастерская</button>`;
+    <button data-v="new" style="border-style:dashed">＋ Новая мастерская</button>
+    <button data-v="import" style="border-style:dashed">📥 Импорт анкеты мастера</button>
+    <input type="file" accept=".zip,application/zip" id="importFile" hidden>`;
+  $('#importFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importAnketa(f); };
 }
 $('#nav').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.v === 'fair') S.view = {type:'fair'};
   else if (b.dataset.v === 'shop') S.view = {type:'shop', id:b.dataset.id};
   else if (b.dataset.v === 'new') return newShop();
+  else if (b.dataset.v === 'import') return $('#importFile').click();
   render(); scrollTo({top:0});
 });
 
@@ -537,6 +541,9 @@ function renderFair(){
       <div>${field('Текст на свободном месте', f.rentText||'', 'data-o="fair" data-k="rentText"')}</div>
     </div>
     ${field('Кнопка аренды в шапке', f.rentBanner||'', 'data-o="fair" data-k="rentBanner"')}
+    <label class="f">Анкета для мастеров — отправьте эту ссылку желающим арендовать место</label>
+    <div class="row"><input class="inp" readonly value="${esc(siteUrl())}anketa.html" id="anketaLink" style="flex:3 1 260px">
+      <button class="btn" id="copyAnketa" style="flex:0 0 auto">Скопировать</button></div>
   </div>
 
   <div class="card sect">
@@ -615,6 +622,8 @@ function renderFair(){
     const i = +b.dataset.mv, j = i + +b.dataset.d; [S.stalls[i], S.stalls[j]] = [S.stalls[j], S.stalls[i]]; render(); });
   pane.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { S.stalls.splice(+b.dataset.rm, 1); render(); });
   $('#addEmpty').onclick = () => { S.stalls.push({kind:'empty', data:{empty:true}}); render(); };
+  $('#copyAnketa').onclick = async () => { try { await navigator.clipboard.writeText($('#anketaLink').value); toast('Ссылка скопирована'); }
+    catch(e) { $('#anketaLink').select(); toast('Скопируйте ссылку вручную'); } };
   $('#addShop2').onclick = newShop;
   pane.querySelectorAll('[data-up]').forEach(inp => inp.onchange = () => {
     const file = inp.files[0]; if (!file) return;
@@ -732,6 +741,106 @@ function addShopFile(id, file){
   return name;
 }
 function dropFile(path){ if (!path) return; if (S.pending.has(path)) S.pending.delete(path); else if (S.files.has(path)) S.deletes.add(path); }
+
+
+/* =====================================================================
+   ИМПОРТ АНКЕТЫ МАСТЕРА (zip из anketa.html)
+   ===================================================================== */
+async function readZip(file){
+  const buf = new Uint8Array(await file.arrayBuffer()), dv = new DataView(buf.buffer);
+  let e = buf.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('это не zip-архив');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true);
+  const out = {}, dec = new TextDecoder();
+  for (let i = 0; i < n; i++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('архив повреждён');
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+    const name = dec.decode(buf.subarray(p + 46, p + 46 + nl)); p += 46 + nl + xl + cl;
+    if (name.endsWith('/') || name.includes('__MACOSX')) continue;
+    const start = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true), data = buf.subarray(start, start + csize);
+    let bytes;
+    if (method === 0) bytes = data;
+    else if (method === 8) bytes = new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    else throw new Error('неизвестный способ сжатия в архиве');
+    out[name.split('/').pop()] = bytes;
+  }
+  return out;
+}
+async function importAnketa(file){
+  let a, files;
+  try {
+    files = await readZip(file);
+    if (!files['anketa.json']) throw new Error('внутри нет anketa.json — это не файл анкеты');
+    a = JSON.parse(new TextDecoder().decode(files['anketa.json']));
+    if (a.format !== 'fair-anketa' || !a.shop || !Array.isArray(a.products)) throw new Error('неизвестный формат анкеты');
+  } catch(e) { toast('Не удалось открыть анкету: ' + e.message); return; }
+
+  const sameId = Object.keys(S.shops).find(id => (S.shops[id].name || '').trim().toLowerCase() === a.shop.name.trim().toLowerCase());
+  const missing = [a.shop.logo, ...a.products.flatMap(p => [p.model, ...(p.photos || [])])].filter(f => f && !files[f]);
+  const size = Object.values(files).reduce((s, b) => s + b.length, 0);
+  const c = a.contact || {};
+  const freePlaces = S.stalls.filter(s => s.kind === 'empty').length;
+  $('#modalBody').innerHTML = `
+    <h2 style="font-size:20px">Анкета: ${esc(a.shop.name)}</h2>
+    <p class="muted small">Заполнена ${a.created ? esc(new Date(a.created).toLocaleString('ru-RU')) : ''} · файлов ${Object.keys(files).length - 1} · ${fmtMB(size)}</p>
+    <div class="card" style="padding:12px 14px;margin-top:10px">
+      <b>${esc(a.shop.name)}</b> <span class="dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${esc(a.shop.color||'#2f5d50')}"></span>
+      <div class="small">${esc(a.shop.tagline||'')}</div>
+      <div class="small">ВК: <a href="${esc(a.shop.vk)}" target="_blank" rel="noopener">${esc(a.shop.vk)}</a>${a.shop.logo ? ' · есть логотип' : ''}</div>
+    </div>
+    <h3 style="font-size:15px;margin:14px 0 6px">Изделия (${a.products.length})</h3>
+    <div class="photos" style="flex-direction:column;gap:6px">${a.products.map(p => `
+      <div class="stall-row"><div class="t">${esc(p.name)} <small>${esc(p.price||'')}${p.category ? ' · ' + esc(p.category) : ''} · фото: ${(p.photos||[]).length}${p.model ? ' · 3D' : ''}</small></div></div>`).join('')}</div>
+    ${missing.length ? `<div class="warnbox">В архиве не хватает файлов: ${missing.map(esc).join(', ')}. Остальное будет добавлено.</div>` : ''}
+    <div class="card" style="padding:12px 14px;margin-top:12px;background:#f5ede2">
+      <b>Контакты мастера</b> <span class="small muted">— не публикуются на сайте</span>
+      <div>${esc(c.name||'')} · <a href="${esc(c.vk||'')}" target="_blank" rel="noopener">${esc(c.vk||'')}</a></div>
+      ${c.note ? `<div class="small" style="margin-top:4px">«${esc(c.note)}»</div>` : ''}
+    </div>
+    ${sameId ? `<label class="f">Мастерская «${esc(S.shops[sameId].name)}» уже есть на ярмарке</label>
+      <label class="chk"><input type="radio" name="impMode" value="append" checked> Добавить эти изделия к ней</label>
+      <label class="chk"><input type="radio" name="impMode" value="new"> Создать отдельную мастерскую</label>` : ''}
+    <p class="small muted" style="margin-top:10px">${freePlaces ? `Новая мастерская займёт первое свободное место (свободно: ${freePlaces}).` : 'Свободных мест нет — будет добавлено новое место в конце рядов.'}</p>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="impCancel">Отмена</button>
+      <button class="btn primary" id="impOk">Добавить на ярмарку</button>
+    </div>`;
+  $('#modal').hidden = false; document.body.style.overflow = 'hidden';
+  const close = () => { $('#modal').hidden = true; document.body.style.overflow = ''; };
+  $('#impCancel').onclick = close;
+  $('#impOk').onclick = () => {
+    const mode = sameId ? document.querySelector('input[name="impMode"]:checked').value : 'new';
+    let id = sameId;
+    if (mode === 'new') {
+      id = slug(a.shop.name).replace(/\./g, '-'); if (!id || id === 'labels') id = 'shop';
+      let k = 2, base = id; while (S.shops[id] || S.files.has(`shops/${id}.js`)) id = `${base}-${k++}`;
+      S.shops[id] = { name: a.shop.name, tagline: a.shop.tagline || '', vk: a.shop.vk || '', vkMessages: a.shop.vkMessages || a.shop.vk || '',
+                      logo: '', color: a.shop.color || '#2f5d50', pageColor: '', pageText: '', products: [] };
+      const ei = S.stalls.findIndex(s => s.kind === 'empty');
+      if (ei >= 0) S.stalls[ei] = {kind:'shop', id}; else S.stalls.push({kind:'shop', id});
+    }
+    const d = S.shops[id];
+    const asFile = (key, name) => new File([files[key]], name);
+    const ext = f => (f.split('.').pop() || '').toLowerCase();
+    if (a.shop.logo && files[a.shop.logo] && (!d.logo || mode === 'new')) {
+      if (d.logo) dropFile(shopPath(id, d.logo));
+      d.logo = addShopFile(id, asFile(a.shop.logo, 'logo.' + ext(a.shop.logo)));
+    }
+    const used = new Set(d.products.map(p => p.id)); let n = d.products.length + 1;
+    for (const p of a.products) {
+      while (used.has('tovar-' + n)) n++; const pid = 'tovar-' + n; used.add(pid);
+      const base = slug(p.name).replace(/\./g, '-') || pid;
+      const item = { id: pid, name: p.name, category: p.category || '', price: p.price || '', specs: p.specs || [], desc: p.desc || '' };
+      if (p.model && files[p.model]) item.model = addShopFile(id, asFile(p.model, `${base}.${ext(p.model)}`));
+      const ph = (p.photos || []).filter(f => files[f]).map((f, j) => addShopFile(id, asFile(f, `${base}-${j+1}.${ext(f)}`)));
+      if (ph.length) item.photos = ph;
+      d.products.push(item);
+    }
+    close(); S.view = {type:'shop', id}; render();
+    toast(`Добавлено изделий: ${a.products.length}. Проверьте и нажмите «Сохранить на сайт»`);
+  };
+}
 
 /* =====================================================================
    ОКНО ТОВАРА
