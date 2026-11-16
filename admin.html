@@ -330,6 +330,7 @@ function lit(v, ind='', order=[]){
 const ORDER = ['id','name','category','price','specs','desc','model','usdz','photos','photo','shape',
                'tagline','vk','vkMessages','logo','logoBg','pageColor','pageText','color','products',
                'rentVk','rentTitle','rentText','rentBanner','shopPageColor','background','backgroundDim','photo','header',
+               'legal','owner','status','inn','city','email','updated',
                'image','fit','showTitle','garland','snow','colorTop','colorBottom','textColor'];
 
 function shopFileText(id, d){
@@ -522,7 +523,7 @@ function shopPath(id, f){ if (!f) return ''; if (f.startsWith('./')) return f.sl
    ЯРМАРКА
    ===================================================================== */
 function renderFair(){
-  const f = S.fair; const h = f.header || {};
+  const f = S.fair; const h = f.header || {}; const lg = f.legal || {};
   const pane = $('#pane');
   pane.innerHTML = `
   <h2>Ярмарка</h2><p class="muted">Название, оформление и порядок торговых мест.</p>
@@ -555,6 +556,21 @@ function renderFair(){
       <button class="btn" id="addEmpty">＋ Свободное место</button>
       <button class="btn" id="addShop2">＋ Новая мастерская</button>
     </div>
+  </div>
+
+  <div class="card sect">
+    <h3>Правовая информация</h3>
+    <p class="small muted">Эти данные показываются на странице «Политика конфиденциальности и правила площадки» (privacy.html).</p>
+    <div class="grid2">
+      <div>${field('ФИО владельца сайта', lg.owner||'', 'data-o="legal" data-k="owner"')}</div>
+      <div>${field('Статус', lg.status||'', 'data-o="legal" data-k="status" placeholder="самозанятый / ИП"')}</div>
+      <div>${field('ИНН', lg.inn||'', 'data-o="legal" data-k="inn"')}</div>
+      <div>${field('Город', lg.city||'', 'data-o="legal" data-k="city"')}</div>
+      <div>${field('Почта для обращений', lg.email||'', 'data-o="legal" data-k="email"')}</div>
+      <div>${field('Дата редакции политики', lg.updated||'', 'data-o="legal" data-k="updated" placeholder="16.11.2026"')}</div>
+    </div>
+    ${field('ВКонтакте для связи', lg.vk||'', 'data-o="legal" data-k="vk"')}
+    <p class="small"><a href="${esc(siteUrl())}privacy.html" target="_blank" rel="noopener">Открыть страницу политики ↗</a></p>
   </div>
 
   <div class="card sect">
@@ -593,7 +609,7 @@ function renderFair(){
     <label class="f">Затемнение фото: <output>${f.backgroundDim ?? 0.25}</output></label>
     <input type="range" min="0" max="0.7" step="0.05" value="${f.backgroundDim ?? 0.25}" data-o="fair" data-k="backgroundDim" style="width:100%">
   </div>`;
-  bind(pane, o => o === 'header' ? (S.fair.header ||= {}) : S.fair);
+  bind(pane, o => o === 'header' ? (S.fair.header ||= {}) : o === 'legal' ? (S.fair.legal ||= {}) : S.fair);
 
   pane.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => {
     const i = +b.dataset.mv, j = i + +b.dataset.d; [S.stalls[i], S.stalls[j]] = [S.stalls[j], S.stalls[i]]; render(); });
