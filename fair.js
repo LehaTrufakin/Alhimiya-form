@@ -29,6 +29,13 @@ window.FAIR_CONFIG = {
       colorBottom: '#2f5d50',
       textColor:   '#F5E6D3',
     },
+    legal:         {
+      vk:      'https://vk.ru/im?sel=-241650475',
+      owner:   'Терре Татьяна Юрьевна',
+      city:    'Москва',
+      email:   'tavlas8664084@gmail.com',
+      updated: '16.11.2026',
+    },
   },
 
   shops: [
