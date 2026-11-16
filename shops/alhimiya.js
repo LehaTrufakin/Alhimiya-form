@@ -8,7 +8,7 @@ fairShop('alhimiya', {
   name:       'Алхимия форм',
   tagline:    'Полимерная глина и смола ручной работы',
   vk:         'https://vk.com/club241650475',
-  vkMessages: 'https://vk.com/club241650475',
+  vkMessages: 'https://vk.ru/im?sel=-241650475',
   logo:       'logo.png',
   pageColor:  '#3a1630',
   pageText:   '#f6e3a1',
