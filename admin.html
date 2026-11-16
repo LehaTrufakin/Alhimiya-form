@@ -327,8 +327,13 @@ function lit(v, ind='', order=[]){
   return '{\n' + keys.map(k => { const kk = isIdent(k) ? k : q(k);
     return ind + '  ' + kk + ': ' + ' '.repeat(pad - kk.length) + lit(v[k], ind + '  ', order); }).join(',\n') + ',\n' + ind + '}';
 }
+const FONT_LIST = [
+  ['Comfortaa','Округлый (как у ярмарки)'], ['Lora','Классический с засечками'], ['Playfair Display','Элегантный'],
+  ['Philosopher','Волшебный'], ['Lobster','Леттеринг'], ['Marck Script','Рукописный'], ['Caveat','Почерк'],
+  ['Amatic SC','Сказочный узкий'], ['Montserrat Alternates','Современный'], ['Neucha','Детский'],
+];
 const ORDER = ['id','name','category','price','specs','desc','model','usdz','photos','photo','shape',
-               'tagline','vk','vkMessages','logo','logoBg','pageColor','pageText','color','products',
+               'tagline','vk','vkMessages','logo','logoBg','pageColor','pageText','color','font','products',
                'rentVk','rentTitle','rentText','rentBanner','shopPageColor','background','backgroundDim','photo','header',
                'legal','owner','status','inn','city','email','updated',
                'image','fit','showTitle','garland','snow','colorTop','colorBottom','textColor'];
@@ -694,6 +699,8 @@ function renderShop(id){
   <div class="card sect">
     <h3>Цвета</h3>
     ${colorField('Навес лавки', d.color||'', 'data-o="shop" data-k="color"')}
+    <label class="f">Шрифт названия</label>
+    <select class="inp" data-o="shop" data-k="font">${FONT_LIST.map(([f, l]) => `<option value="${f==='Comfortaa'?'':f}" ${(d.font||'')===(f==='Comfortaa'?'':f)?'selected':''} style="font-family:'${f}'">${l}</option>`).join('')}</select>
     <div class="grid2">
       <div>${colorField('Фон страницы мастерской', d.pageColor||'', 'data-o="shop" data-k="pageColor"')}</div>
       <div>${colorField('Цвет заголовка на фоне', d.pageText||'', 'data-o="shop" data-k="pageText"')}</div>
@@ -816,7 +823,8 @@ async function importAnketa(file){
       id = slug(a.shop.name).replace(/\./g, '-'); if (!id || id === 'labels') id = 'shop';
       let k = 2, base = id; while (S.shops[id] || S.files.has(`shops/${id}.js`)) id = `${base}-${k++}`;
       S.shops[id] = { name: a.shop.name, tagline: a.shop.tagline || '', vk: a.shop.vk || '', vkMessages: a.shop.vkMessages || a.shop.vk || '',
-                      logo: '', color: a.shop.color || '#2f5d50', pageColor: '', pageText: '', products: [] };
+                      logo: '', color: a.shop.color || '#2f5d50', pageColor: a.shop.pageColor || '', pageText: a.shop.pageText || '',
+                      font: a.shop.font || '', products: [] };
       const ei = S.stalls.findIndex(s => s.kind === 'empty');
       if (ei >= 0) S.stalls[ei] = {kind:'shop', id}; else S.stalls.push({kind:'shop', id});
     }

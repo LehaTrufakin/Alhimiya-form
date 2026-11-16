@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Анкета мастерской для ярмарки</title>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@400;600;700;800&family=Lora:wght@600&family=Playfair+Display:wght@700&family=Philosopher:wght@700&family=Lobster&family=Marck+Script&family=Caveat:wght@700&family=Amatic+SC:wght@700&family=Montserrat+Alternates:wght@700&family=Neucha&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#f7f1e8;--paper:#fffaf3;--ink:#2b2622;--muted:#7b6f64;--line:#e5d9c8;--berry:#b23a48;--berry-d:#8f2a37;--pine:#2f5d50;--warn:#fff3cd}
   *{box-sizing:border-box}
@@ -54,6 +54,22 @@
   .chk input{margin-top:4px;width:18px;height:18px;flex:none}
   .bar{position:sticky;bottom:0;margin-top:18px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 -8px 20px -14px rgba(0,0,0,.3)}
   .bar .msg{flex:1;min-width:180px;font-size:14px;color:var(--muted)}
+  .preview{border-radius:16px;padding:22px 14px 18px;text-align:center;border:1px solid var(--line);transition:background .2s,color .2s}
+  .preview .pv-name{font-size:28px;line-height:1.2;margin:0 0 4px;word-break:break-word}
+  .preview .pv-tag{font-size:14px;opacity:.85;margin:0 0 14px}
+  .pv-stall{width:170px;margin:0 auto;border-radius:12px 12px 8px 8px;background:linear-gradient(#a8784c,#82552f);padding-bottom:8px;overflow:hidden;text-align:center}
+  .pv-aw{height:24px;background:repeating-linear-gradient(90deg,var(--c) 0 16px,#fff6e8 16px 32px)}
+  .pv-sign{margin:8px;background:#3b2a1e;color:#ffe9c4;border:2px solid #d9b382;border-radius:7px;padding:5px 4px;font-size:15px;line-height:1.15}
+  .pv-win{margin:0 8px;height:54px;border-radius:6px;background:#fffaf3}
+  .combos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:6px}
+  .combo{border:2px solid var(--line);border-radius:12px;padding:12px 6px;cursor:pointer;font:inherit;font-weight:800;font-size:18px;text-align:center;line-height:1.1}
+  .combo small{display:block;font-size:11px;font-weight:700;margin-top:4px;opacity:.85}
+  .combo.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+  .fonts{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:6px}
+  .fontbtn{border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;cursor:pointer;text-align:left;color:var(--ink)}
+  .fontbtn b{display:block;font-size:22px;font-weight:normal;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fontbtn span{font:600 12px Nunito,sans-serif;color:var(--muted)}
+  .fontbtn.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
   .vkhint{background:#e8f0fb;border:1px solid #c9daf3;border-radius:12px;padding:10px 12px;font-size:14px;margin-top:12px}
 </style>
 </head>
@@ -80,12 +96,27 @@
       <div><label class="f" for="sMsg">Куда писать покупателям для заказа</label>
         <input class="inp" id="sMsg" data-save placeholder="если отличается: https://vk.me/..."></div>
     </div>
-    <label class="f">Цвет навеса вашей лавки</label>
-    <div class="chips" id="chips"></div>
     <label class="f">Логотип (необязательно)</label>
     <div class="fileline"><label class="btn sm filebtn">Выбрать файл<input type="file" accept="image/*" id="logo" hidden></label>
       <span class="muted" id="logoName">не выбран — на прилавке будут показаны ваши изделия</span></div>
     <div class="thumbs" id="logoThumb"></div>
+  </section>
+
+  <!-- Оформление -->
+  <section class="card">
+    <h2>Оформление витрины</h2>
+    <p class="muted small">Так будут выглядеть ваша лавка в торговых рядах и страница вашей мастерской. Всё можно поменять и позже.</p>
+    <div class="preview" id="pv">
+      <p class="pv-name" id="pvName">Название мастерской</p>
+      <p class="pv-tag" id="pvTag">Чем занимается мастерская</p>
+      <div class="pv-stall"><div class="pv-aw" id="pvAw"></div><div class="pv-sign" id="pvSign">Название</div><div class="pv-win"></div></div>
+    </div>
+    <label class="f">Цвет фона страницы и текста</label>
+    <div class="combos" id="combos"></div>
+    <label class="f">Шрифт названия</label>
+    <div class="fonts" id="fonts"></div>
+    <label class="f">Цвет навеса лавки</label>
+    <div class="chips" id="chips"></div>
   </section>
 
   <!-- 2. Изделия -->
@@ -143,6 +174,17 @@ const COLORS = ['#b23a48','#c0392b','#7a1f2b','#e07a9a','#7b3fa0','#a77bca','#2b
 
 /* ============ состояние ============ */
 let color = COLORS[10], logo = null;            // logo: File
+const COMBOS = [   // [название, фон, текст]; пустые — как у ярмарки
+  ['Как у ярмарки','',''], ['Кремовый','#f7f1e8',''], ['Лаванда','#efe4f3',''], ['Мята','#e5f3ee',''], ['Пудра','#f8e8ea',''],
+  ['Голубой лёд','#e6f0f7',''], ['Сливовый','#3a1630','#f6e3a1'], ['Бордо','#4a1220','#f6e3a1'], ['Ночное небо','#14284a','#f5e6d3'],
+  ['Еловый','#1f3d33','#f3ead8'], ['Шоколад','#3b2a1e','#f5e6d3'], ['Графит','#2a2730','#d9c6f0'],
+];
+const FONTS = [   // [семейство, подпись]
+  ['Comfortaa','Округлый (как у ярмарки)'], ['Lora','Классический с засечками'], ['Playfair Display','Элегантный'],
+  ['Philosopher','Волшебный'], ['Lobster','Леттеринг'], ['Marck Script','Рукописный'], ['Caveat','Почерк'],
+  ['Amatic SC','Сказочный узкий'], ['Montserrat Alternates','Современный'], ['Neucha','Детский'],
+];
+let combo = 0, font = 'Comfortaa';
 let prods = [];                                  // {id, name, category, price, specs, desc, model:File|null, photos:[File]}
 let uid = 1;
 const newProd = () => ({ id: uid++, name:'', category:'', price:'', specs:'', desc:'', model:null, photos:[] });
@@ -151,7 +193,7 @@ const newProd = () => ({ id: uid++, name:'', category:'', price:'', specs:'', de
 const DRAFT = 'fairAnketaDraft';
 function saveDraft(){
   try {
-    const d = { color, fields:{}, prods: prods.map(p => ({name:p.name, category:p.category, price:p.price, specs:p.specs, desc:p.desc})) };
+    const d = { color, combo, font, fields:{}, prods: prods.map(p => ({name:p.name, category:p.category, price:p.price, specs:p.specs, desc:p.desc})) };
     document.querySelectorAll('[data-save]').forEach(el => d.fields[el.id] = el.value);
     localStorage.setItem(DRAFT, JSON.stringify(d));
   } catch(e){}
@@ -160,6 +202,8 @@ function loadDraft(){
   try {
     const d = JSON.parse(localStorage.getItem(DRAFT) || 'null'); if (!d) return false;
     if (d.color) color = d.color;
+    if (Number.isInteger(d.combo) && COMBOS[d.combo]) combo = d.combo;
+    if (d.font && FONTS.some(f => f[0] === d.font)) font = d.font;
     for (const [k,v] of Object.entries(d.fields || {})) { const el = document.getElementById(k); if (el) el.value = v; }
     prods = (d.prods || []).map(p => ({...newProd(), ...p}));
     return prods.length > 0;
@@ -171,7 +215,29 @@ document.addEventListener('input', e => { if (e.target.matches('[data-save]')) s
 function drawChips(){
   $('#chips').innerHTML = COLORS.map(c => `<button type="button" class="chip${c===color?' on':''}" style="background:${c}" data-c="${c}" aria-label="цвет ${c}"></button>`).join('');
 }
-$('#chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; color = b.dataset.c; drawChips(); saveDraft(); });
+$('#chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; color = b.dataset.c; drawChips(); drawPreview(); saveDraft(); });
+
+/* ============ оформление: фон, текст, шрифт, предпросмотр ============ */
+function drawDesign(){
+  $('#combos').innerHTML = COMBOS.map(([n, bg, tx], i) => `<button type="button" class="combo${i===combo?' on':''}" data-i="${i}"
+    style="background:${bg||'#f7f1e8'};color:${tx||'#2b2622'}${i===0?';border-style:dashed':''}">Аа<small>${n}</small></button>`).join('');
+  const nm = $('#sName').value.trim() || 'Ваша мастерская';
+  $('#fonts').innerHTML = FONTS.map(([f, label]) => `<button type="button" class="fontbtn${f===font?' on':''}" data-f="${f}">
+    <b style="font-family:'${f}',sans-serif">${esc(nm)}</b><span>${label}</span></button>`).join('');
+  drawPreview();
+}
+function drawPreview(){
+  const [, bg, tx] = COMBOS[combo], ff = `'${font}', Comfortaa, sans-serif`, nm = $('#sName').value.trim() || 'Название мастерской';
+  const pv = $('#pv'); pv.style.background = bg || '#f7f1e8'; pv.style.color = tx || '#2b2622';
+  $('#pvName').textContent = nm; $('#pvName').style.fontFamily = ff;
+  $('#pvTag').textContent = $('#sTag').value.trim() || 'Чем занимается мастерская';
+  $('#pvSign').textContent = nm; $('#pvSign').style.fontFamily = ff;
+  $('#pvAw').style.setProperty('--c', color);
+}
+$('#combos').addEventListener('click', e => { const b = e.target.closest('.combo'); if (!b) return; combo = +b.dataset.i; drawDesign(); saveDraft(); });
+$('#fonts').addEventListener('click', e => { const b = e.target.closest('.fontbtn'); if (!b) return; font = b.dataset.f; drawDesign(); saveDraft(); });
+let nameT; $('#sName').addEventListener('input', () => { drawPreview(); clearTimeout(nameT); nameT = setTimeout(drawDesign, 400); });
+$('#sTag').addEventListener('input', drawPreview);
 
 /* ============ логотип ============ */
 $('#logo').onchange = e => { logo = e.target.files[0] || null; drawLogo(); };
@@ -316,7 +382,8 @@ $('#make').onclick = async () => {
     const anketa = {
       format: 'fair-anketa', version: 1, created: new Date().toISOString(), fair: FAIR.name || '',
       shop: { name: $('#sName').value.trim(), tagline: $('#sTag').value.trim(), vk: $('#sVk').value.trim(),
-              vkMessages: $('#sMsg').value.trim(), color, logo: logoName },
+              vkMessages: $('#sMsg').value.trim(), color, logo: logoName,
+              pageColor: COMBOS[combo][1], pageText: COMBOS[combo][2], font: font === 'Comfortaa' ? '' : font },
       products,
       contact: { name: $('#cName').value.trim(), vk: $('#cVk').value.trim(), note: $('#cNote').value.trim() },
       agreed: true,
@@ -336,7 +403,7 @@ $('#make').onclick = async () => {
 
 /* ============ старт ============ */
 if (!loadDraft()) prods = [newProd()];
-drawChips(); drawLogo(); drawProds();
+drawChips(); drawLogo(); drawProds(); drawDesign();
 </script>
 </body>
 </html>
