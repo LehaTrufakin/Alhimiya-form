@@ -54,6 +54,7 @@ fairShop('alhimiya', {
       desc:     'Ёлочные игрушки по мотивам «Гарри Поттера», полностью ручная работа.',
       model:    'garri.glb',
       photos:   ['gari.jpg', 'garri.jpg'],
+      video:    'vid-20261117-155009.mp4',
     },
   ],
 });
