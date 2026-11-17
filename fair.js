@@ -40,7 +40,7 @@ window.FAIR_CONFIG = {
 
   shops: [
     'alhimiya',
-    { empty: true },
+    'lepimoment',
     { empty: true },
     { empty: true },
     { empty: true },
