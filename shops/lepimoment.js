@@ -22,7 +22,7 @@ fairShop('lepimoment', {
       price:    '3500 рублей',
       specs:    ['Стекло', 'декор - полимерная запекаемая глина'],
       desc:     'Коньячный бокал 390мл. стекло, фабричное производство Турция.Высота - 12см. Оттенок декора - состаренная бронза. Можно заказать в другом металлическом оттенке, например, золото, серебро.',
-      model:    'bokal-fixed.glb',
+      model:    'bokal-fixed-2.glb',
       photos:   ['bokal-konyachnyy-nautilus-s-dekorom-v-stile-stimpank-1.jpg', 'bokal-konyachnyy-nautilus-s-dekorom-v-stile-stimpank-2.jpg', 'bokal-konyachnyy-nautilus-s-dekorom-v-stile-stimpank-3.jpg', 'bokal-konyachnyy-nautilus-s-dekorom-v-stile-stimpank-4.jpg', 'bokal-konyachnyy-nautilus-s-dekorom-v-stile-stimpank-5.jpg', 'bokal-konyachnyy-nautilus-s-dekorom-v-stile-stimpank-6.jpg', 'bokal-konyachnyy-nautilus-s-dekorom-v-stile-stimpank-7.jpg'],
     },
   ],
