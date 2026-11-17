@@ -9,7 +9,7 @@ fairShop('lepimoment', {
   tagline:    'Сувениры и украшения из полимерной глины',
   vk:         'https://vk.ru/sviesta',
   vkMessages: 'https://vk.ru/sviesta',
-  logo:       '',
+  logo:       'logo-2000-1.png',
   pageColor:  '#3a1630',
   pageText:   '#f6e3a1',
   color:      '#e07a9a',
