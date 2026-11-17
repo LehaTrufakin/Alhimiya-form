@@ -123,6 +123,16 @@
   <section class="card">
     <h2>Изделия</h2>
     <p class="muted small">Добавьте каждое изделие отдельно. Нужны хотя бы фото (лучше 2–4 с разных сторон). Если у вас есть 3D-модель (.glb) — прикрепите её; если нет — можем сделать модель по вашим фото, договоримся отдельно.</p>
+    <details class="vreq" style="margin:8px 0 4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px">
+      <summary style="font-weight:800;cursor:pointer">🎬 Можно добавить короткое видео — требования</summary>
+      <ul class="small" style="margin:8px 0 2px;padding-left:20px;line-height:1.55">
+        <li><b>Формат:</b> MP4. С iPhone: «Настройки → Камера → Форматы → Наиболее совместимый», тогда видео сохранится в MP4.</li>
+        <li><b>Длина:</b> 10–30 секунд.</li>
+        <li><b>Размер файла:</b> до 20 МБ, максимум 50 МБ. Качество 720p или 1080p, 4K не нужно.</li>
+        <li><b>Звук</b> не нужен: на сайте видео играет без звука.</li>
+        <li><b>Как снимать:</b> при дневном свете, изделие в центре кадра, однотонный фон, телефон держите ровно. Покажите изделие со всех сторон или в использовании.</li>
+      </ul>
+    </details>
     <div id="prods"></div>
     <button class="btn" id="addProd" style="margin-top:12px">＋ Добавить изделие</button>
   </section>
@@ -187,7 +197,7 @@ const FONTS = [   // [семейство, подпись]
 let combo = 0, font = 'Comfortaa';
 let prods = [];                                  // {id, name, category, price, specs, desc, model:File|null, photos:[File]}
 let uid = 1;
-const newProd = () => ({ id: uid++, name:'', category:'', price:'', specs:'', desc:'', model:null, photos:[] });
+const newProd = () => ({ id: uid++, name:'', category:'', price:'', specs:'', desc:'', model:null, video:null, photos:[] });
 
 /* ============ черновик (только текст) ============ */
 const DRAFT = 'fairAnketaDraft';
@@ -269,6 +279,11 @@ function drawProds(){
       <div class="fileline"><label class="btn sm filebtn">${p.model ? 'Заменить' : 'Выбрать файл'}<input type="file" accept=".glb,.gltf,.stl" hidden data-model></label>
         <span class="muted">${p.model ? esc(p.model.name) + ' (' + fmtMB(p.model.size) + ')' : 'нет'}</span>
         ${p.model ? '<button type="button" class="btn sm danger" data-mdel>Убрать</button>' : ''}</div>
+      <label class="f">Видео <span class="muted small">(необязательно; MP4, 10–30 секунд, до 20 МБ (максимум 50 МБ), 720p или 1080p. На сайте видео играет без звука.)</span></label>
+      <div class="fileline"><label class="btn sm filebtn">${p.video ? 'Заменить' : 'Выбрать видео'}<input type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" hidden data-video></label>
+        <span class="muted">${p.video ? esc(p.video.name) + ' (' + fmtMB(p.video.size) + ')' : 'нет'}</span>
+        ${p.video ? '<button type="button" class="btn sm danger" data-vdel>Убрать</button>' : ''}</div>
+      ${p.video ? videoWarn(p.video) : ''}
       ${p.model && p.model.size > 25*1048576 ? `<div class="warnbox">Модель весит ${fmtMB(p.model.size)} — это слишком много для телефона. Мы уменьшим её при размещении, но если можете — сохраните модель в меньшем качестве.</div>` : ''}
     </div>`).join('');
 }
@@ -280,15 +295,34 @@ $('#prods').addEventListener('change', e => {
   const box = e.target.closest('.prod'); if (!box) return; const p = prods[+box.dataset.i];
   if (e.target.matches('[data-photos]')) { p.photos.push(...e.target.files); drawProds(); }
   if (e.target.matches('[data-model]')) { p.model = e.target.files[0] || null; drawProds(); }
+  if (e.target.matches('[data-video]')) { const f = e.target.files[0]; if (f) checkVideo(f).then(dur => { p.video = f; p.videoDur = dur; drawProds(); }); }
 });
 $('#prods').addEventListener('click', e => {
   const box = e.target.closest('.prod'); if (!box) return; const i = +box.dataset.i, p = prods[i];
   if (e.target.matches('[data-del]')) { if (confirm('Убрать это изделие из анкеты?')) { prods.splice(i, 1); drawProds(); saveDraft(); } }
   if (e.target.matches('[data-phdel]')) { p.photos.splice(+e.target.dataset.phdel, 1); drawProds(); }
   if (e.target.matches('[data-mdel]')) { p.model = null; drawProds(); }
+  if (e.target.matches('[data-vdel]')) { p.video = null; drawProds(); }
 });
 $('#addProd').onclick = () => { prods.push(newProd()); drawProds(); saveDraft();
   const last = document.querySelector('.prod:last-child'); last && last.scrollIntoView({behavior:'smooth', block:'center'}); };
+
+/* ============ видео: проверка длины, размера и формата ============ */
+const VIDEO_MAX = 50*1048576;
+function checkVideo(f){
+  return new Promise(res => { const v = document.createElement('video'); v.preload = 'metadata';
+    const done = d => { URL.revokeObjectURL(v.src); res(d); };
+    v.onloadedmetadata = () => done(isFinite(v.duration) ? v.duration : 0); v.onerror = () => done(-1);
+    v.src = URL.createObjectURL(f); setTimeout(() => done(0), 5000); });
+}
+function videoWarn(f){
+  const w = [], p = prods.find(x => x.video === f) || {}, d = p.videoDur;
+  if (f.size > VIDEO_MAX) w.push(`Видео весит ${fmtMB(f.size)} — больше 50 МБ не принимаем. Снимите короче или в качестве 720p.`);
+  else if (f.size > 20*1048576) w.push(`Видео весит ${fmtMB(f.size)} — на телефоне будет долго грузиться. Лучше до 20 МБ (короче или 720p).`);
+  if (d > 35) w.push(`Видео длится ${Math.round(d)} сек — лучше 10–30 секунд.`);
+  if (d === -1 || /\.mov$/i.test(f.name)) w.push('Похоже, это формат MOV (iPhone) — на Android он может не открыться. Лучше MP4: «Настройки → Камера → Форматы → Наиболее совместимый».');
+  return w.length ? `<div class="warnbox">${w.join('<br>')}</div>` : '';
+}
 
 /* ============ уменьшение фото в браузере ============ */
 async function shrinkImage(file, max, keepPng){
@@ -351,6 +385,7 @@ function validate(){
     const p = prods[i], box = document.querySelector(`.prod[data-i="${i}"]`);
     if (!p.name.trim()) return fail(`Укажите название изделия ${i+1}.`, box.querySelector('[data-k="name"]'));
     if (!p.photos.length && !p.model) return fail(`Добавьте фото к изделию «${p.name}».`, box);
+    if (p.video && p.video.size > VIDEO_MAX) return fail(`Видео к изделию «${p.name}» больше 50 МБ. Снимите короче или в качестве 720p.`, box);
   }
   if (!$('#cName').value.trim()) return fail('Напишите, как к вам обращаться.', $('#cName'));
   if (!/vk\.(com|ru)\//i.test($('#cVk').value)) return fail('Укажите вашу личную страницу ВКонтакте, чтобы мы могли с вами связаться.', $('#cVk'));
@@ -362,7 +397,7 @@ $('#make').onclick = async () => {
   if (!validate()) return;
   const btn = $('#make'), msg = $('#barMsg'); btn.disabled = true;
   try {
-    const files = [], total = prods.reduce((a, p) => a + p.photos.length + (p.model ? 1 : 0), 0) + (logo ? 1 : 0);
+    const files = [], total = prods.reduce((a, p) => a + p.photos.length + (p.model ? 1 : 0) + (p.video ? 1 : 0), 0) + (logo ? 1 : 0);
     let done = 0; const step = t => { done++; msg.textContent = `Готовлю файлы: ${done} из ${total}… ${t}`; };
     let logoName = '';
     if (logo) { const r = await shrinkImage(logo, 800, true); logoName = 'logo.' + r.ext; files.push({ name: logoName, data: r.data }); step('логотип'); }
@@ -376,8 +411,11 @@ $('#make').onclick = async () => {
       let model = '';
       if (p.model) { const ext = (p.model.name.split('.').pop() || 'glb').toLowerCase(); model = `${base}-model.${ext}`;
         files.push({ name: model, data: new Uint8Array(await p.model.arrayBuffer()) }); step(p.name); }
+      let video = '';
+      if (p.video) { const ext = (p.video.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4'; video = `${base}-video.${ext}`;
+        files.push({ name: video, data: new Uint8Array(await p.video.arrayBuffer()) }); step(p.name); }
       products.push({ name: p.name.trim(), category: p.category.trim(), price: p.price.trim(),
-        specs: p.specs.split(',').map(s => s.trim()).filter(Boolean), desc: p.desc.trim(), model, photos });
+        specs: p.specs.split(',').map(s => s.trim()).filter(Boolean), desc: p.desc.trim(), model, video, photos });
     }
     const anketa = {
       format: 'fair-anketa', version: 1, created: new Date().toISOString(), fair: FAIR.name || '',

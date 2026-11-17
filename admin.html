@@ -332,7 +332,7 @@ const FONT_LIST = [
   ['Philosopher','Волшебный'], ['Lobster','Леттеринг'], ['Marck Script','Рукописный'], ['Caveat','Почерк'],
   ['Amatic SC','Сказочный узкий'], ['Montserrat Alternates','Современный'], ['Neucha','Детский'],
 ];
-const ORDER = ['id','name','category','price','specs','desc','model','usdz','photos','photo','shape',
+const ORDER = ['id','name','category','price','specs','desc','model','usdz','photos','video','photo','shape',
                'tagline','vk','vkMessages','logo','logoBg','pageColor','pageText','color','font','products',
                'rentVk','rentTitle','rentText','rentBanner','shopPageColor','background','backgroundDim','photo','header',
                'legal','owner','status','inn','city','email','updated',
@@ -666,9 +666,9 @@ function renderShop(id){
     <h3>Товары <small class="muted">(${d.products.length})</small></h3>
     <div class="prods">${d.products.map((p,i) => {
       const img = p.photos && p.photos[0] ? previewUrl(shopPath(id, p.photos[0])) : '';
-      const isNew = [p.model, ...(p.photos||[])].some(f => f && S.pending.has(shopPath(id, f)));
+      const isNew = [p.model, p.video, ...(p.photos||[])].some(f => f && S.pending.has(shopPath(id, f)));
       return `<div class="prod">
-        <div class="ph">${img ? `<img src="${esc(img)}" alt="">` : (p.model ? '3D' : 'нет фото')}<span class="b">${p.model ? '3D' : 'Фото'}${p.photos&&p.photos.length ? ' · '+p.photos.length+' фото' : ''}</span></div>
+        <div class="ph">${img ? `<img src="${esc(img)}" alt="">` : (p.model ? '3D' : 'нет фото')}<span class="b">${p.model ? '3D' : 'Фото'}${p.photos&&p.photos.length ? ' · '+p.photos.length+' фото' : ''}${p.video ? ' · видео' : ''}</span></div>
         <div class="in"><b>${esc(p.name||'(без названия)')}</b>${isNew?'<span class="badge-new">новое</span>':''}
           <span class="muted small">${esc(p.price||'')}${p.category ? ' · '+esc(p.category) : ''}</span></div>
         <div class="acts">
@@ -723,7 +723,7 @@ function renderShop(id){
   pane.querySelectorAll('[data-pdel]').forEach(b => b.onclick = () => {
     const p = d.products[+b.dataset.pdel];
     if (!window.confirm(`Удалить товар «${p.name}»? Его модель и фото тоже удалятся с сайта.`)) return;
-    for (const f of [p.model, p.usdz, ...(p.photos||[])]) if (f) dropFile(shopPath(id, f));
+    for (const f of [p.model, p.usdz, p.video, ...(p.photos||[])]) if (f) dropFile(shopPath(id, f));
     d.products.splice(+b.dataset.pdel, 1); render();
   });
   $('#upLogo').onchange = e => { const file = e.target.files[0]; if (!file) return;
@@ -784,7 +784,7 @@ async function importAnketa(file){
   } catch(e) { toast('Не удалось открыть анкету: ' + e.message); return; }
 
   const sameId = Object.keys(S.shops).find(id => (S.shops[id].name || '').trim().toLowerCase() === a.shop.name.trim().toLowerCase());
-  const missing = [a.shop.logo, ...a.products.flatMap(p => [p.model, ...(p.photos || [])])].filter(f => f && !files[f]);
+  const missing = [a.shop.logo, ...a.products.flatMap(p => [p.model, p.video, ...(p.photos || [])])].filter(f => f && !files[f]);
   const size = Object.values(files).reduce((s, b) => s + b.length, 0);
   const c = a.contact || {};
   const freePlaces = S.stalls.filter(s => s.kind === 'empty').length;
@@ -798,7 +798,7 @@ async function importAnketa(file){
     </div>
     <h3 style="font-size:15px;margin:14px 0 6px">Изделия (${a.products.length})</h3>
     <div class="photos" style="flex-direction:column;gap:6px">${a.products.map(p => `
-      <div class="stall-row"><div class="t">${esc(p.name)} <small>${esc(p.price||'')}${p.category ? ' · ' + esc(p.category) : ''} · фото: ${(p.photos||[]).length}${p.model ? ' · 3D' : ''}</small></div></div>`).join('')}</div>
+      <div class="stall-row"><div class="t">${esc(p.name)} <small>${esc(p.price||'')}${p.category ? ' · ' + esc(p.category) : ''} · фото: ${(p.photos||[]).length}${p.model ? ' · 3D' : ''}${p.video ? ' · видео' : ''}</small></div></div>`).join('')}</div>
     ${missing.length ? `<div class="warnbox">В архиве не хватает файлов: ${missing.map(esc).join(', ')}. Остальное будет добавлено.</div>` : ''}
     <div class="card" style="padding:12px 14px;margin-top:12px;background:#f5ede2">
       <b>Контакты мастера</b> <span class="small muted">— не публикуются на сайте</span>
@@ -841,6 +841,7 @@ async function importAnketa(file){
       const base = slug(p.name).replace(/\./g, '-') || pid;
       const item = { id: pid, name: p.name, category: p.category || '', price: p.price || '', specs: p.specs || [], desc: p.desc || '' };
       if (p.model && files[p.model]) item.model = addShopFile(id, asFile(p.model, `${base}.${ext(p.model)}`));
+      if (p.video && files[p.video]) item.video = addShopFile(id, asFile(p.video, `${base}-video.${ext(p.video)}`));
       const ph = (p.photos || []).filter(f => files[f]).map((f, j) => addShopFile(id, asFile(f, `${base}-${j+1}.${ext(f)}`)));
       if (ph.length) item.photos = ph;
       d.products.push(item);
@@ -868,6 +869,7 @@ function openProduct(shopId, idx){
   const draw = () => {
     const modelPath = shopPath(shopId, p.model);
     const modelFile = S.pending.get(modelPath);
+    const videoFile = p.video ? S.pending.get(shopPath(shopId, p.video)) : null;
     $('#modalBody').innerHTML = `
       <h2 style="font-size:20px">${isNew ? 'Новый товар' : 'Товар: ' + esc(p.name || p.id)}</h2>
       ${field('Название', p.name, 'id="pName" placeholder="Например: Брошь «Сирень»"')}
@@ -884,6 +886,15 @@ function openProduct(shopId, idx){
         <label class="btn sm">${p.model ? 'Заменить' : 'Загрузить'}<input type="file" accept=".glb,.gltf,.stl" hidden id="pModel"></label>
         ${p.model ? '<button class="btn sm danger" id="pModelClr">Убрать</button>' : ''}</div>
       ${modelFile && modelFile.size > 15*1048576 ? `<div class="warnbox">Модель весит ${fmtMB(modelFile.size)} — на телефоне будет долго грузиться. Лучше сначала уменьшить её программой SHRINK (до 3–8 МБ).</div>` : ''}
+
+      <label class="f">Видео <span class="muted small">(необязательно)</span></label>
+      <p class="small muted" style="margin:0 0 4px">Требования: MP4, 10–30 секунд, до 20 МБ (максимум 50 МБ), 720p или 1080p. На сайте видео играет без звука. Изделие в центре кадра, хороший свет.</p>
+      <div class="file">${p.video ? `<video src="${esc(previewUrl(shopPath(shopId, p.video)))}" muted playsinline preload="metadata" style="width:120px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#000"></video>` : ''}
+        <span class="nm">${p.video ? esc(p.video) + (videoFile ? ` — ${fmtMB(videoFile.size)}, новое` : '') : 'нет'}</span>
+        <label class="btn sm">${p.video ? 'Заменить' : 'Загрузить'}<input type="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" hidden id="pVideo"></label>
+        ${p.video ? '<button class="btn sm danger" id="pVideoClr">Убрать</button>' : ''}</div>
+      ${videoFile && videoFile.size > 25*1048576 ? `<div class="warnbox">Видео весит ${fmtMB(videoFile.size)} — на телефоне будет долго грузиться. Лучше снять короче (10–20 секунд) или в качестве 720p.</div>` : ''}
+      ${videoFile && /\.mov$/i.test(videoFile.name) ? `<div class="warnbox">Формат MOV (iPhone) может не открыться на Android. Если возможно — пришлите MP4 (на iPhone: Настройки → Камера → Форматы → «Наиболее совместимый»).</div>` : ''}
 
       <label class="f">Фото (можно несколько; первое — главное)</label>
       <div class="photos">${p.photos.map((f,i) => `<div class="p"><img src="${esc(previewUrl(shopPath(shopId, f)))}" alt="">
@@ -908,6 +919,11 @@ function openProduct(shopId, idx){
       if (p.model) removed.push(shopPath(shopId, p.model));
       p.model = addShopFile(shopId, file); added.push(shopPath(shopId, p.model)); draw(); };
     const mc = $('#pModelClr'); if (mc) mc.onclick = () => { keep(); removed.push(shopPath(shopId, p.model)); delete p.model; draw(); };
+    $('#pVideo').onchange = e => { const file = e.target.files[0]; if (!file) return; keep();
+      if (file.size > 95*1048576) { toast('Видео больше 95 МБ — GitHub его не примет. Снимите короче или в 720p.'); return; }
+      if (p.video) removed.push(shopPath(shopId, p.video));
+      p.video = addShopFile(shopId, file); added.push(shopPath(shopId, p.video)); draw(); };
+    const vc = $('#pVideoClr'); if (vc) vc.onclick = () => { keep(); removed.push(shopPath(shopId, p.video)); delete p.video; draw(); };
     $('#pPhotos').onchange = e => { keep();
       for (const file of e.target.files) { const nm = addShopFile(shopId, file); p.photos.push(nm); added.push(shopPath(shopId, nm)); }
       draw(); };

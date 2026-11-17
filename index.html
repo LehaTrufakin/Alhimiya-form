@@ -65,6 +65,14 @@
   .photo-view img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:72px 12px 16px;box-sizing:border-box;user-select:none;-webkit-user-drag:none}
   .ph-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.12);font-size:26px;line-height:1;color:var(--ink);z-index:4}
   #phPrev{left:12px} #phNext{right:12px}
+  .spin-view{position:absolute;inset:0;z-index:3;cursor:grab;touch-action:pan-y;background:radial-gradient(ellipse at 50% 45%,#fffdf9 0,#f3e9db 60%,#eadcc8 100%)}
+  .spin-view:active{cursor:grabbing}
+  .spin-view img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:72px 12px 16px;box-sizing:border-box;user-select:none;pointer-events:none}
+  .spin-load{position:absolute;left:0;right:0;top:calc(72px + env(safe-area-inset-top));text-align:center;font-size:13px;font-weight:700;color:var(--muted)}
+  #spinHint{bottom:18px}
+  .video-view{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:#141110;padding:64px 0 76px;box-sizing:border-box}
+  .video-view video{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;background:#141110}
+  .mivid{font-weight:800;font-size:13px;color:var(--berry)}
   .icon{z-index:5;position:absolute;top:calc(12px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(0,0,0,.08);font-size:20px;display:grid;place-items:center;color:var(--ink);text-decoration:none}
   .back{left:12px}
   .hint{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);background:rgba(43,38,34,.78);color:#fff;font-size:13px;padding:7px 14px;border-radius:99px;white-space:nowrap;transition:opacity .5s;pointer-events:none}
@@ -222,6 +230,14 @@
       <img id="photoImg" alt="">
       <button class="ph-nav" id="phPrev" aria-label="Предыдущее фото">‹</button>
       <button class="ph-nav" id="phNext" aria-label="Следующее фото">›</button>
+    </div>
+    <div class="spin-view" id="spinView" hidden>
+      <img id="spinImg" alt="" draggable="false">
+      <div class="spin-load" id="spinLoad"></div>
+      <div class="hint" id="spinHint">⟲ Потяните влево-вправо, чтобы повернуть</div>
+    </div>
+    <div class="video-view" id="videoView" hidden>
+      <video id="videoEl" playsinline muted loop controls preload="metadata"></video>
     </div>
     <div class="strip" id="strip" hidden></div>
     <div class="loader" id="loader">Загружаем 3D-модель…</div>
@@ -416,8 +432,16 @@ function normP(p){
   p.photos ??= p['фото'] ?? p['фотографии'];
   if (typeof p.photos === 'string') p.photos = [p.photos];
   p.photos = (p.photos || []).filter(Boolean);
+  p.spin ??= p['360'] ?? p['вращение'];
+  if (typeof p.spin === 'string') p.spin = [p.spin];
+  p.spin = (p.spin || []).filter(Boolean);
+  p.video ??= p['видео'];
+  if (Array.isArray(p.video)) p.video = p.video[0];
+  p.video = p.video || '';
 }
+const hasVideo = p => !!p.video;
 const has3D = p => !!(p.model || p.shape);
+const hasSpin = p => p.spin && p.spin.length >= 4;
 const FAIR_CFG = window.FAIR_CONFIG || null;
 const FAIR = FAIR_CFG ? Object.assign({
     name:'Ярмарка мастеров', tagline:'', rentVk:'#', rentTitle:'Сдаётся',
@@ -435,7 +459,7 @@ SHOPS.forEach((sh,i) => {
   sh.products.forEach((p,k) => {
     normP(p); if(!p.id) p.id='item-'+(k+1);
     const inShop = f => (f && !/[\/:]/.test(f)) ? `models/${sh.id}/${f}` : f;   // файлы мастерской лежат в models/<id>/
-    if (sh.__file) { for (const key of ['model','usdz','photo']) p[key] = inShop(p[key]); p.photos = p.photos.map(inShop); }
+    if (sh.__file) { for (const key of ['model','usdz','photo']) p[key] = inShop(p[key]); p.photos = p.photos.map(inShop); p.spin = p.spin.map(inShop); p.video = inShop(p.video); }
     p.shop = sh; p.gid = FAIR ? sh.id+'--'+p.id : p.id;
     ALL.push(p);
   });
@@ -752,18 +776,21 @@ async function openProduct(gid){
   const many = V.list.length>1; $('#btnPrev').style.visibility=$('#btnNext').style.visibility = many?'':'hidden';
   setupAR(p);
   // лента: 3D + фото
-  const photos=p.photos||[], is3D=has3D(p);
-  $('#strip').innerHTML = photos.length
-    ? (is3D?'<button class="mi mi3d" data-m="3d">3D</button>':'') + photos.map((u,i)=>`<button class="mi" data-m="${i}"><img src="${esc(u)}" alt="Фото ${i+1}" loading="lazy"></button>`).join('')
+  const photos=p.photos||[], is3D=has3D(p), isSpin=hasSpin(p), isVid=hasVideo(p);
+  const items = (isSpin?1:0) + (is3D?1:0) + (isVid?1:0) + photos.length;
+  $('#strip').innerHTML = items >= 2
+    ? (isSpin?'<button class="mi mi3d" data-m="spin">360°</button>':'') + (is3D?'<button class="mi mi3d" data-m="3d">3D</button>':'')
+      + (isVid?'<button class="mi mivid" data-m="video">▶ Видео</button>':'')
+      + photos.map((u,i)=>`<button class="mi" data-m="${i}"><img src="${esc(u)}" alt="Фото ${i+1}" loading="lazy"></button>`).join('')
     : '';
-  $('#strip').hidden = !photos.length;
-  setMedia(is3D ? '3d' : (photos.length ? 0 : '3d'));
+  $('#strip').hidden = items < 2;
+  setMedia(isSpin ? 'spin' : is3D ? '3d' : isVid ? 'video' : (photos.length ? 0 : '3d'));
   if(!V.ready) initViewer();
   resizeViewer(); resetView();
   if(!V.running){ V.running=true; loop(); }
   $('#hint').classList.remove('off'); setTimeout(()=>$('#hint').classList.add('off'),5000);
   const tok=++V.token; $('#loader').hidden=false; $('#modelNote').hidden=true; V.noteText='';
-  if(!is3D && photos.length){                       // только фото, без 3D
+  if(!is3D && (photos.length || isSpin || isVid)){   // только фото / 360° / видео, без 3D
     if(V.model){ V.scene.remove(V.model); disposeTree(V.model); V.model=null; }
     $('#loader').hidden=true; return;
   }
@@ -773,7 +800,8 @@ async function openProduct(gid){
   V.model=m; V.scene.add(m); V.shadow.position.y=m.userData.minY-0.01;
   $('#loader').hidden=true; resetView();
 }
-function closeViewer(){ V.running=false; V.token++; $('#viewer').hidden=true; }
+function videoStop(){ const v=$('#videoEl'); try{ v.pause(); }catch(_){} }
+function closeViewer(){ spinStop(); videoStop(); V.running=false; V.token++; $('#viewer').hidden=true; }
 
 /* AR — только если для товара есть свой .glb (Android) / .usdz (iPhone) */
 function setupAR(p){
@@ -793,13 +821,47 @@ function setMedia(m){
   document.querySelectorAll('#strip .mi').forEach(b=>b.classList.toggle('on', b.dataset.m===String(m)));
   const pv=$('#photoView'), tools=document.querySelector('.tools');
   $('#modelNote').hidden = m!=='3d' || !V.noteText;
+  $('#spinView').hidden = m!=='spin'; if(m!=='spin') spinStop();
+  $('#videoView').hidden = m!=='video'; if(m!=='video') videoStop();
+  if(m==='video'){ pv.hidden=true; tools.hidden=true; $('#hint').classList.add('off');
+    const v=$('#videoEl'); const src=new URL(V.p.video,location.href).href;
+    if(v.src!==src) v.src=src; v.muted=true; v.play().catch(()=>{}); return; }
   if(m==='3d'){ pv.hidden=true; tools.hidden=false; return; }
+  if(m==='spin'){ pv.hidden=true; tools.hidden=true; $('#hint').classList.add('off'); spinStart(V.p); return; }
   const ph=V.p.photos; pv.hidden=false; tools.hidden=true; $('#hint').classList.add('off');
   $('#photoImg').src=ph[m]; $('#phPrev').hidden=$('#phNext').hidden=ph.length<2;
   const btn=document.querySelector(`#strip .mi[data-m="${m}"]`); btn?.scrollIntoView({block:'nearest',inline:'nearest'});
 }
-function stepPhoto(d){ if(V.media==='3d') return; const n=V.p.photos.length; setMedia((V.media+d+n)%n); }
-$('#strip').addEventListener('click',e=>{ const b=e.target.closest('.mi'); if(!b) return; setMedia(b.dataset.m==='3d'?'3d':+b.dataset.m); });
+function stepPhoto(d){ if(V.media==='spin'){ spinAuto(false); showFrame(SP.i+d); return; } if(V.media==='3d'||V.media==='video') return; const n=V.p.photos.length; setMedia((V.media+d+n)%n); }
+$('#strip').addEventListener('click',e=>{ const b=e.target.closest('.mi'); if(!b) return; const m=b.dataset.m; setMedia(m==='3d'||m==='spin'||m==='video'?m:+m); });
+
+/* ---- вращение 360° из кадров ---- */
+const SP={ p:null, frames:[], imgs:[], i:0, loaded:0, timer:null, idle:null };
+function spinStart(p){
+  if(SP.p!==p){
+    spinStop(); SP.p=p; SP.frames=p.spin; SP.imgs=SP.frames.map(()=>null); SP.loaded=0; SP.i=0;
+    $('#spinImg').removeAttribute('src'); spinLoadText();
+    SP.frames.forEach((u,k)=>{ const im=new Image(); im.decoding='async';
+      im.onload=()=>{ if(SP.p!==p) return; SP.imgs[k]=im; SP.loaded++; if(!$('#spinImg').getAttribute('src') || k===SP.i) showFrame(SP.i); spinLoadText(); };
+      im.onerror=()=>{ if(SP.p!==p) return; SP.loaded++; spinLoadText(); };
+      im.src=u; });
+  }
+  $('#spinHint').classList.remove('off'); setTimeout(()=>$('#spinHint').classList.add('off'),4000);
+  spinAuto(true);
+}
+function showFrame(i){
+  const n=SP.frames.length; if(!n) return; SP.i=((i%n)+n)%n;
+  for(let d=0; d<n; d++){ const im=SP.imgs[(SP.i+d)%n]; if(im){ $('#spinImg').src=im.src; return; } }   // ещё не загружен — ближайший готовый
+}
+function spinLoadText(){ const n=SP.frames.length; $('#spinLoad').textContent = SP.loaded<n ? `Загружаю 360°: ${SP.loaded} из ${n}` : ''; }
+function spinAuto(on){ clearInterval(SP.timer); SP.timer=null; if(on) SP.timer=setInterval(()=>{ if(SP.loaded>=Math.min(SP.frames.length,8)) showFrame(SP.i+1); }, 90); }
+function spinStop(){ spinAuto(false); clearTimeout(SP.idle); }
+(()=>{ const el=$('#spinView'); let x0=null, i0=0;
+  el.addEventListener('pointerdown',e=>{ x0=e.clientX; i0=SP.i; spinAuto(false); clearTimeout(SP.idle); $('#spinHint').classList.add('off'); try{ el.setPointerCapture(e.pointerId); }catch(_){} });
+  el.addEventListener('pointermove',e=>{ if(x0==null) return; const step=Math.max(3, el.clientWidth/(SP.frames.length*1.3)); showFrame(i0 + Math.round((x0-e.clientX)/step)); });
+  const up=()=>{ if(x0==null) return; x0=null; SP.idle=setTimeout(()=>{ if(V.media==='spin') spinAuto(true); }, 4000); };
+  el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+})();
 $('#phPrev').onclick=()=>stepPhoto(-1); $('#phNext').onclick=()=>stepPhoto(1);
 (()=>{ let x0=null; const pv=$('#photoView');
   pv.addEventListener('touchstart',e=>{ x0=e.touches[0].clientX; },{passive:true});
@@ -838,7 +900,7 @@ function renderCatalog(){
   $('#cats').innerHTML = cats.length>2 ? cats.map(c=>`<button class="chip${c===activeCat?' on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('') : '';
   $('#grid').innerHTML=list.filter(p=>activeCat==='Все'||p.category===activeCat).map(p=>`
     <a class="card" href="#${esc(p.gid)}">
-      <div class="thumb">${thumbImg(p)}<span class="t3d">${has3D(p)?'3D':'Фото'}</span></div>
+      <div class="thumb">${thumbImg(p)}<span class="t3d">${has3D(p)?'3D':hasSpin(p)?'360°':hasVideo(p)?'Видео':'Фото'}</span></div>
       <div class="info"><p class="name"${fontCss(p.shop)?` style="font-family:${fontCss(p.shop)};font-size:16px"`:''}>${esc(p.name)}</p><p class="meta">${esc((p.specs||[])[0]||p.category||'')}</p><div class="price">${esc(p.price||'')}</div></div>
     </a>`).join('') || '<p style="grid-column:1/-1;text-align:center;color:var(--muted)">Товары скоро появятся</p>';
 }
@@ -935,13 +997,26 @@ function showFair(){
 }
 
 const thumbs={};
+function videoThumb(url){            // кадр из видео для карточки товара
+  return new Promise(res=>{
+    const v=document.createElement('video'); v.muted=true; v.playsInline=true; v.preload='auto'; v.crossOrigin='anonymous';
+    const done=d=>{ clearTimeout(t); v.removeAttribute('src'); v.load(); res(d); };
+    const t=setTimeout(()=>done(''),8000);
+    v.onloadeddata=()=>{ v.currentTime=Math.min(1,(v.duration||2)/3); };
+    v.onseeked=()=>{ try{ const c=document.createElement('canvas'), k=420/Math.max(v.videoWidth,v.videoHeight);
+        c.width=Math.round(v.videoWidth*k); c.height=Math.round(v.videoHeight*k);
+        c.getContext('2d').drawImage(v,0,0,c.width,c.height); done(c.toDataURL('image/jpeg',0.82)); } catch(e){ done(''); } };
+    v.onerror=()=>done(''); v.src=url;
+  });
+}
 async function renderThumbs(){
   const r=new THREE.WebGLRenderer({antialias:true, alpha:true, preserveDrawingBuffer:true});
   r.setPixelRatio(1); r.setSize(420,420);
   const {scene, shadow}=setupScene(r);
   const cam=new THREE.PerspectiveCamera(30,1,0.05,100); fitCamera(cam);
   for(const p of ALL){
-    if(p.photo || (!has3D(p) && p.photos.length)){ thumbs[p.gid]=p.photo || p.photos[0]; }
+    if(p.photo || (!has3D(p) && (p.photos.length || hasSpin(p)))){ thumbs[p.gid]=p.photo || (hasSpin(p) ? p.spin[0] : p.photos[0]); }
+    else if(!has3D(p) && hasVideo(p)){ thumbs[p.gid]=await videoThumb(p.video); }
     else{
       const m=await buildModel(p, true); m.rotation.y=-0.35; scene.add(m); shadow.position.y=m.userData.minY-0.01;
       r.render(scene,cam); thumbs[p.gid]=r.domElement.toDataURL('image/png');
