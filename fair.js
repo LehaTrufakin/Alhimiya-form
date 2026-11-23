@@ -41,7 +41,7 @@ window.FAIR_CONFIG = {
   shops: [
     'alhimiya',
     'lepimoment',
-    { empty: true },
+    'tvorcheskaya-masterskaya-alfa-gemini',
     { empty: true },
     { empty: true },
     { empty: true },
